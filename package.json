@@ -1,0 +1,26 @@
+{
+    "name": "cn_basekit",
+    "version": "0.0.1",
+    "scripts": {
+        "start": "node app.js"
+    },
+    "dependencies": {
+        "body-parser": "^1.19.0",
+        "connect-redis": "^6.0.0",
+        "ejs": "2.5.5",
+        "express": "4.17.x",
+        "express-session": "^1.17.2",
+        "multer": "1.1.x",
+        "mysql": "^2.17.1",
+        "passport": "^0.4.1",
+        "passport-auth0": "^1.4.0",
+        "pg": "^8.6.0",
+        "redis": "^3.1.2",
+        "request": "^2.88.2",
+        "uuid": "3.3.2"
+    },
+    "repository": {},
+    "engines": {
+        "node": "14.x"
+    }
+}

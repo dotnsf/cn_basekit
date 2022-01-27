@@ -1,0 +1,117 @@
+swagger: '2.0'
+info:
+  description: Cloud Native PostgreSQL API ドキュメント
+  version: 0.0.1
+  title: Cloud Native PostgreSQL REST APIs
+host: localhost:8080
+basePath: /api/db
+tags:
+  - name: item
+    description: Item APIs
+schemes:
+  - http
+  - https
+paths:
+  /items:
+    get:
+      tags:
+        - item
+      summary: 全item取得
+      description: 全item取得
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: 成功
+        '400':
+          description: エラー
+  /item:
+    post:
+      tags:
+        - item
+      summary: item作成
+      description: item作成
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          in: body
+          schema:
+            $ref: '#/definitions/ItemRequest'
+      responses:
+        '200':
+          description: 成功
+        '400':
+          description: エラー
+  /item/{id}:
+    get:
+      tags:
+        - item
+      summary: item取得
+      description: item取得
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          type: string
+          in: path
+          description: id
+          required: true
+      responses:
+        '200':
+          description: 成功
+        '400':
+          description: エラー
+    put:
+      tags:
+        - item
+      summary: item更新
+      description: item更新
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          type: string
+          in: path
+          description: id
+          required: true
+        - name: body
+          in: body
+          schema:
+            $ref: '#/definitions/ItemRequest'
+      responses:
+        '200':
+          description: 成功
+        '400':
+          description: エラー
+    delete:
+      tags:
+        - item
+      summary: item削除
+      description: item削除
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          type: string
+          in: path
+          description: id
+          required: true
+      responses:
+        '200':
+          description: 成功
+        '400':
+          description: エラー
+definitions:
+  ItemRequest:
+    type: object
+    properties:
+      id:
+        type: string
+        description: id
+      name:
+        type: string
+        description: 名前
+      price:
+        type: integer
+        description: 価格
