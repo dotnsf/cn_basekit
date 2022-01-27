@@ -1,5 +1,5 @@
 //. DB
-exports.postgres_database_url = 'postgres://user:pass@localhost:5432/mydb';
+exports.postgres_database_url = 'postgres://user:pass@localhost:5432/db';
 exports.mysql_database_url = 'mysql://user:pass@host:3306/db';
 exports.cloudant_database_url = 'https://user:pass@host/db';
 

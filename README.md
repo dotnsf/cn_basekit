@@ -30,11 +30,11 @@ Sample basic application kit with MySQL/PostgreSQL/Cloudant/Redis/Auth0.
 
 - PostgreSQL
 
-  - `$ docker run -d --name postgres -p 5432:5432 -e POSTGRES_USER=user -e POSTGRES_PASSWORD=pass -e POSTGRES_DB=mydb postgres`
+  - `$ docker run -d --name postgres -p 5432:5432 -e POSTGRES_USER=user -e POSTGRES_PASSWORD=pass -e POSTGRES_DB=db postgres`
 
   - `$ docker container exec -it postgres bash`
 
-  - `# psql -U user -d mydb`
+  - `# psql -U user -d db`
 
 - Redis
 
