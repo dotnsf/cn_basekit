@@ -2,18 +2,18 @@
 
 ## Overview
 
-Sample basic application kit with MySQL/PostgreSQL/Cloudant/Redis/Auth0.
+Sample basic application kit with MySQL/PostgreSQL/CouchDB/Redis/Auth0.
 
 
 ## Environment values
 
-- CLOUDANT_DATABASE_URL : URL connection string for Cloudant
+- COUCHDB_DATABASE_URL : URL connection string for CouchDB
 
 - MYSQL_DATABASE_URL : URL connection string for MySQL
 
 - POSTGRES_DATABASE_URL : URL connection string for PostgreSQL
 
-- DBTYPE : Which type of DB to use(CLOUDANT/MYSQL/POSTGRES)
+- DBTYPE : Which type of DB to use(COUCHDB/MYSQL/POSTGRES)
 
 - REDIS_DATABASE_URL : URL connection string for Redis(, if needed)
 
@@ -28,6 +28,24 @@ Sample basic application kit with MySQL/PostgreSQL/Cloudant/Redis/Auth0.
 
 ## Running data services on docker
 
+- CouchDB
+
+  - `$ docker run -d --name couchdb -p 5984:5984 -e COUCHDB_USER=user -e COUCHDB_PASSWORD=pass couchdb`
+
+  - `http://localhost:5984/_utils/`
+
+  - `db` データベースを作成しておく
+
+- MySQL
+
+  - `$ docker run -d --name mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=P@ssw0rd -e MYSQL_DATABASE=db -e MYSQL_USER=user -e MYSQL_PASSWORD=pass mysql:5.7`
+
+  - `$ docker container exec -it mysql bash`
+
+  - `# mysql -u user -p db`
+
+  - `mysql> create table if not exists items ( id varchar(50) not null primary key, name varchar(50) default '', price int default 0, created bigint default 0, updated bigint default 0 ) default charset=utf8;`
+
 - PostgreSQL
 
   - `$ docker run -d --name postgres -p 5432:5432 -e POSTGRES_USER=user -e POSTGRES_PASSWORD=pass -e POSTGRES_DB=db postgres`
@@ -35,6 +53,8 @@ Sample basic application kit with MySQL/PostgreSQL/Cloudant/Redis/Auth0.
   - `$ docker container exec -it postgres bash`
 
   - `# psql -U user -d db`
+
+  - `db=# create table if not exists items ( id varchar(50) not null primary key, name varchar(50) default '', price int default 0, created bigint default 0, updated bigint default 0 );`
 
 - Redis
 

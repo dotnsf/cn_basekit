@@ -36,7 +36,7 @@ function try_reconnect( ts ){
 }
 
 
-api.use( multer( { dest: './tmp/' } ).single( 'image' ) );
+api.use( multer( { dest: '../tmp/' } ).single( 'image' ) );
 api.use( bodyParser.urlencoded( { extended: true } ) );
 api.use( bodyParser.json() );
 api.use( express.Router() );
@@ -59,7 +59,6 @@ api.createItem = async function( item ){
             var t = ( new Date() ).getTime();
             item.created = t;
             item.updated = t;
-            console.log( item );
             conn.query( sql, item, function( err, result ){
               if( err ){
                 console.log( err );
@@ -240,6 +239,7 @@ api.post( '/item', async function( req, res ){
   res.contentType( 'application/json; charset=utf-8' );
 
   var item = req.body;
+  item.price = parseInt( item.price );
   api.createItem( item ).then( function( result ){
     res.status( result.status ? 200 : 400 );
     res.write( JSON.stringify( result, null, 2 ) );

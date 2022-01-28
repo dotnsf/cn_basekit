@@ -12,8 +12,6 @@ app.use( '/api/db', db );
 
 var redisClient = require( './api/db_redis' );
 
-//var RedisStore = require( 'connect-redis' )( session );
-
 app.use( express.Router() );
 app.use( express.static( __dirname + '/public' ) );
 

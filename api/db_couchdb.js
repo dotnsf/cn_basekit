@@ -1,26 +1,46 @@
 //. db_cloudant.js
 var express = require( 'express' ),
+    multer = require( 'multer' ),
     bodyParser = require( 'body-parser' ),
     request = require( 'request' ),
-    router = express();
+    uuidv1 = require( 'uuid/v1' ),
+    api = express();
 
 var settings = require( '../settings' );
 
 //. env values
-var database_url = 'CLOUDANT_DATABASE_URL' in process.env ? process.env.CLOUDANT_DATABASE_URL : settings.cloudant_database_url; 
+var database_url = 'COUCHDB_DATABASE_URL' in process.env ? process.env.COUCHDB_DATABASE_URL : settings.couchdb_database_url; 
 
+var db = '';
+var db_headers = { 'Accept': 'application/json' };
+
+var tmp = database_url.split( '/' );
+if( tmp.length > 0 ){
+  db = tmp[tmp.length-1];
+}
+
+tmp = database_url.split( '//' );
+if( tmp.length > 0 ){
+  tmp = tmp[1].split( '@' );
+  if( tmp.length > 0 ){
+    var db_basic = Buffer.from( tmp[0] ).toString( 'base64' );
+    db_headers['Authorization'] = 'Basic ' + db_basic;
+  }
+}
 
 //. POST メソッドで JSON データを受け取れるようにする
-router.use( bodyParser.urlencoded( { extended: true } ) );
-router.use( bodyParser.json() );
+api.use( multer( { dest: '../tmp/' } ).single( 'image' ) );
+api.use( bodyParser.urlencoded( { extended: true } ) );
+api.use( bodyParser.json() );
+api.use( express.Router() );
 
 
 //. 新規作成用関数
-router.createDb = function( db ){
+api.createDb = function( db ){
   return new Promise( ( resolve, reject ) => {
     if( db ){
       var option = {
-        url: settings.db_url + '/' + db,
+        url: database_url,
         method: 'PUT',
         headers: db_headers
       };
@@ -38,12 +58,11 @@ router.createDb = function( db ){
   });
 };
 
-router.createDoc = function( db, doc, id ){
+api.createDoc = function( db, doc, id ){
   return new Promise( ( resolve, reject ) => {
     if( db ){
-      //var id = generateId();
       var option = {
-        url: settings.db_url + '/' + db + '/' + id,
+        url: database_url + '/' + id,
         method: 'PUT',
         json: doc,
         headers: db_headers
@@ -60,11 +79,14 @@ router.createDoc = function( db, doc, id ){
     }
   });
 };
+api.createItem = async function( db, doc, id ){
+  return await api.createDoc( db, doc, id );
+};
 
 //. 複数件取得用関数
-router.getDbs = function( limit, start ){
+api.getDbs = function( limit, start ){
   return new Promise( ( resolve, reject ) => {
-    var url = settings.db_url + '/_all_dbs';
+    var url = database_url + '/_all_dbs';
     if( limit ){
       url += '?limit=' + limit;
       if( start ){
@@ -90,12 +112,12 @@ router.getDbs = function( limit, start ){
 };
 
 //. １件取得用関数
-router.getDoc = function( db, id ){
+api.getDoc = function( db, id ){
   return new Promise( ( resolve, reject ) => {
     if( db ){
       if( id ){
         var option = {
-          url: settings.db_url + '/' + db + '/' + id,
+          url: database_url + '/' + id,
           method: 'GET',
           headers: db_headers
         };
@@ -104,7 +126,7 @@ router.getDoc = function( db, id ){
             resolve( { status: false, error: err } );
           }else{
             doc = JSON.parse( doc );
-            resolve( { status: true, doc: doc } );
+            resolve( { status: true, result: doc } );
           }
         });
       }else{
@@ -115,12 +137,15 @@ router.getDoc = function( db, id ){
     }
   });
 };
+api.readItem = async function( db, id ){
+  return await api.getDoc( db, id );
+};
 
 //. 複数件取得用関数
-router.getDocs = function( db, limit, start ){
+api.getDocs = function( db, limit, start ){
   return new Promise( ( resolve, reject ) => {
     if( db ){
-      var url = settings.db_url + '/' + db + '/_all_docs?include_docs=true';
+      var url = database_url + '/_all_docs?include_docs=true';
       if( limit ){
         url += '&limit=' + limit;
       }
@@ -143,7 +168,7 @@ router.getDocs = function( db, limit, start ){
               docs.push( doc.doc );
             });
           }
-          resolve( { status: true, docs: docs } );
+          resolve( { status: true, results: docs } );
         }
       });
     }else{
@@ -151,16 +176,19 @@ router.getDocs = function( db, limit, start ){
     }
   });
 };
+api.readItems = async function( limit, start ){
+  return await api.getDocs( db, limit, start );
+};
 
 //. １件更新用関数
-router.updateDoc = function( db, doc ){
+api.updateDoc = function( db, doc ){
   return new Promise( ( resolve, reject ) => {
     if( db ){
       if( !doc._id ){
         resolve( { status: false, error: 'id needed.' } );
       }else{
         var option = {
-          url: settings.db_url + '/' + db + '/' + doc._id,
+          url: database_url + '/' + doc._id,
           method: 'GET',
           headers: db_headers
         };
@@ -170,7 +198,7 @@ router.updateDoc = function( db, doc ){
           }else{
             body = JSON.parse( body );
             option = {
-              url: settings.db_url + '/' + db + '/' + doc._id + '?rev=' + body._rev,
+              url: database_url + '/' + doc._id + '?rev=' + body._rev,
               method: 'PUT',
               json: doc,
               headers: db_headers
@@ -191,13 +219,16 @@ router.updateDoc = function( db, doc ){
     }
   });
 };
+api.updateItem = async function( db, doc ){
+  return await api.updateDoc( db, doc );
+};
 
 //. １件削除用関数
-router.deleteDb = function( db ){
+api.deleteDb = function( db ){
   return new Promise( ( resolve, reject ) => {
     if( db ){
       var option = {
-        url: settings.db_url + '/' + db,
+        url: database_url,
         method: 'DELETE',
         headers: db_headers
       };
@@ -215,14 +246,14 @@ router.deleteDb = function( db ){
   });
 };
 
-router.deleteDoc = function( db, id ){
+api.deleteDoc = function( db, id ){
   return new Promise( ( resolve, reject ) => {
     if( db ){
       if( !id ){
         resolve( { status: false, error: 'id needed.' } );
       }else{
         var option = {
-          url: settings.db_url + '/' + db + '/' + id,
+          url: database_url + '/' + id,
           method: 'GET',
           headers: db_headers
         };
@@ -232,7 +263,7 @@ router.deleteDoc = function( db, id ){
           }else{
             doc = JSON.parse( doc );
             option = {
-              url: settings.db_url + '/' + db + '/' + id + '?rev=' + doc._rev,
+              url: database_url + '/' + id + '?rev=' + doc._rev,
               method: 'DELETE',
               headers: db_headers
             };
@@ -252,10 +283,15 @@ router.deleteDoc = function( db, id ){
     }
   });
 };
+api.deleteItem = async function( db, id ){
+  return await api.deleteDoc( db, id );
+};
 
 
+
+/*
 //. POST /api/db/{db}
-router.post( '/:db', function( req, res ){
+api.post( '/:db', function( req, res ){
   res.contentType( 'application/json; charset=utf-8' );
 
   var db = req.params.db;
@@ -267,7 +303,7 @@ router.post( '/:db', function( req, res ){
 });
 
 //. POST /api/db/{db}/{id}
-router.post( '/:db/:id', function( req, res ){
+api.post( '/:db/:id', function( req, res ){
   res.contentType( 'application/json; charset=utf-8' );
 
   var db = req.params.db;
@@ -281,7 +317,7 @@ router.post( '/:db/:id', function( req, res ){
 });
 
 //. GET /api/db/
-router.get( '/', function( req, res ){
+api.get( '/', function( req, res ){
   res.contentType( 'application/json; charset=utf-8' );
 
   var limit = 0;
@@ -298,7 +334,7 @@ router.get( '/', function( req, res ){
     }catch( e ){
     }
   }
-  router.getDbs( limit, start ).then( function( result ){
+  api.getDbs( limit, start ).then( function( result ){
     res.status( result.status ? 200 : 400 );
     res.write( JSON.stringify( result, null, 2 ) );
     res.end();
@@ -306,7 +342,7 @@ router.get( '/', function( req, res ){
 });
 
 //. GET /api/db/{db}
-router.get( '/:db', function( req, res ){
+api.get( '/:db', function( req, res ){
   res.contentType( 'application/json; charset=utf-8' );
 
   var db = req.params.db;
@@ -324,7 +360,7 @@ router.get( '/:db', function( req, res ){
     }catch( e ){
     }
   }
-  router.getDocs( db, limit, start ).then( function( result ){
+  api.getDocs( db, limit, start ).then( function( result ){
     res.status( result.status ? 200 : 400 );
     res.write( JSON.stringify( result, null, 2 ) );
     res.end();
@@ -332,12 +368,12 @@ router.get( '/:db', function( req, res ){
 });
 
 //. GET /api/db/{db}/{id}
-router.get( '/:db/:id', function( req, res ){
+api.get( '/:db/:id', function( req, res ){
   res.contentType( 'application/json; charset=utf-8' );
 
   var db = req.params.db;
   var id = req.params.id;
-  router.getDoc( db, id ).then( function( result ){
+  api.getDoc( db, id ).then( function( result ){
     res.status( result.status ? 200 : 400 );
     res.write( JSON.stringify( result, null, 2 ) );
     res.end();
@@ -345,14 +381,14 @@ router.get( '/:db/:id', function( req, res ){
 });
 
 //. PUT /api/db/{db}/{id}
-router.put( '/:db/:id', function( req, res ){
+api.put( '/:db/:id', function( req, res ){
   res.contentType( 'application/json; charset=utf-8' );
 
   var db = req.params.db;
   var id = req.params.id;
   var doc = req.body;
   doc._id = id;
-  router.updateDoc( db, doc ).then( function( result ){
+  api.updateDoc( db, doc ).then( function( result ){
     res.status( result.status ? 200 : 400 );
     res.write( JSON.stringify( result, null, 2 ) );
     res.end();
@@ -360,11 +396,11 @@ router.put( '/:db/:id', function( req, res ){
 });
 
 //. DELETE /api/db/{db}
-router.delete( '/:db', function( req, res ){
+api.delete( '/:db', function( req, res ){
   res.contentType( 'application/json; charset=utf-8' );
 
   var db = req.params.db;
-  router.deleteDb( db ).then( function( result ){
+  api.deleteDb( db ).then( function( result ){
     res.status( result.status ? 200 : 400 );
     res.write( JSON.stringify( result, null, 2 ) );
     res.end();
@@ -372,12 +408,12 @@ router.delete( '/:db', function( req, res ){
 });
 
 //. DELETE /api/db/{db}/{id}
-router.delete( '/:db/:id', function( req, res ){
+api.delete( '/:db/:id', function( req, res ){
   res.contentType( 'application/json; charset=utf-8' );
 
   var db = req.params.db;
   var id = req.params.id;
-  router.deleteDoc( db, id ).then( function( result ){
+  api.deleteDoc( db, id ).then( function( result ){
     res.status( result.status ? 200 : 400 );
     res.write( JSON.stringify( result, null, 2 ) );
     res.end();
@@ -420,6 +456,87 @@ if( settings.db_basic ){
     }
   });
 }
+*/
 
-//. router をエクスポート
-module.exports = router;
+api.post( '/item', async function( req, res ){
+  res.contentType( 'application/json; charset=utf-8' );
+
+  var item = req.body;
+  item.price = parseInt( item.price );
+  if( !item.id ){
+    item.id = uuidv1();
+    item._id = item.id;
+  }
+  var t = ( new Date() ).getTime();
+  item.created = t;
+  item.updated = t;
+  api.createDoc( db, item, item.id ).then( function( result ){
+    res.status( result.status ? 200 : 400 );
+    res.write( JSON.stringify( result, null, 2 ) );
+    res.end();
+  });
+});
+
+api.get( '/item/:id', async function( req, res ){
+  res.contentType( 'application/json; charset=utf-8' );
+
+  var item_id = req.params.id;
+  api.getDoc( db, item_id ).then( function( result ){
+    res.status( result.status ? 200 : 400 );
+    res.write( JSON.stringify( result, null, 2 ) );
+    res.end();
+  });
+});
+
+api.get( '/items', async function( req, res ){
+  res.contentType( 'application/json; charset=utf-8' );
+
+  var limit = 0;
+  var start = 0;
+  if( req.query.limit ){
+    try{
+      limit = parseInt( req.query.limit );
+    }catch( e ){
+    }
+  }
+  if( req.query.start ){
+    try{
+      start = parseInt( req.query.start );
+    }catch( e ){
+    }
+  }
+  api.getDocs( db, limit, start ).then( function( result ){
+    res.status( result.status ? 200 : 400 );
+    res.write( JSON.stringify( result, null, 2 ) );
+    res.end();
+  });
+});
+
+api.put( '/item/:id', function( req, res ){
+  res.contentType( 'application/json; charset=utf-8' );
+
+  var item_id = req.params.id;
+  var item = req.body;
+  //item.id = item_id;
+  item._id = item_id;
+  api.updateDoc( db, doc ).then( function( result ){
+    res.status( result.status ? 200 : 400 );
+    res.write( JSON.stringify( result, null, 2 ) );
+    res.end();
+  });
+});
+
+api.delete( '/item/:id', function( req, res ){
+  res.contentType( 'application/json; charset=utf-8' );
+
+  var item_id = req.params.id;
+  api.deleteDoc( db, item_id ).then( function( result ){
+    res.status( result.status ? 200 : 400 );
+    res.write( JSON.stringify( result, null, 2 ) );
+    res.end();
+  });
+});
+
+
+//. api をエクスポート
+module.exports = api;
