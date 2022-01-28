@@ -28,23 +28,26 @@ var settings_auth0_domain = 'AUTH0_DOMAIN' in process.env ? process.env.AUTH0_DO
 var RedisStore = require( 'connect-redis' )( session );
 var passport = require( 'passport' );
 var Auth0Strategy = require( 'passport-auth0' );
-var strategy = new Auth0Strategy({
-  domain: settings_auth0_domain,
-  clientID: settings_auth0_client_id,
-  clientSecret: settings_auth0_client_secret,
-  callbackURL: settings_auth0_callback_url
-}, function( accessToken, refreshToken, extraParams, profile, done ){
-  profile.idToken = extraParams.id_token;
-  return done( null, profile );
-});
-passport.use( strategy );
+var strategy = null;
+if( settings_auth0_domain && settings_auth0_client_id && settings_auth0_client_secret && settings_auth0_callback_url ){
+  strategy = new Auth0Strategy({
+    domain: settings_auth0_domain,
+    clientID: settings_auth0_client_id,
+    clientSecret: settings_auth0_client_secret,
+    callbackURL: settings_auth0_callback_url
+  }, function( accessToken, refreshToken, extraParams, profile, done ){
+    profile.idToken = extraParams.id_token;
+    return done( null, profile );
+  });
+  passport.use( strategy );
 
-passport.serializeUser( function( user, done ){
-  done( null, user );
-});
-passport.deserializeUser( function( user, done ){
-  done( null, user );
-});
+  passport.serializeUser( function( user, done ){
+    done( null, user );
+  });
+  passport.deserializeUser( function( user, done ){
+    done( null, user );
+  });
+}
 
 //. Session
 var sess = {
@@ -61,42 +64,43 @@ if( redisClient ){
   sess.store = new RedisStore( { client: redisClient } );
 }
 app.use( session( sess ) );
-app.use( passport.initialize() );
-app.use( passport.session() );
+if( strategy ){
+  app.use( passport.initialize() );
+  app.use( passport.session() );
 
-//. login
-app.get( '/auth0/login', passport.authenticate( 'auth0', {
-  scope: 'openid profile email'
-}, function( req, res ){
-  res.redirect( '/' );
-}));
+  //. login
+  app.get( '/auth0/login', passport.authenticate( 'auth0', {
+    scope: 'openid profile email'
+  }, function( req, res ){
+    res.redirect( '/' );
+  }));
 
-//. logout
-app.get( '/auth0/logout', function( req, res ){
-  req.logout();
-  res.redirect( '/' );
-});
+  //. logout
+  app.get( '/auth0/logout', function( req, res ){
+    req.logout();
+    res.redirect( '/' );
+  });
 
-app.get( '/auth0/callback', async function( req, res, next ){
-  passport.authenticate( 'auth0', function( err, user ){
-    if( err ) return next( err );
-    if( !user ) return res.redirect( '/auth0/login' );
-
-    req.logIn( user, function( err ){
+  app.get( '/auth0/callback', async function( req, res, next ){
+    passport.authenticate( 'auth0', function( err, user ){
       if( err ) return next( err );
-      res.redirect( '/' );
-    })
-  })( req, res, next );
-});
+      if( !user ) return res.redirect( '/auth0/login' );
 
+      req.logIn( user, function( err ){
+        if( err ) return next( err );
+        res.redirect( '/' );
+      })
+    })( req, res, next );
+  });
+}
 
 app.get( '/', async function( req, res ){
   var conn = null;
   try{
-    if( !req.user ){ 
+    if( strategy && !req.user ){ 
       res.redirect( '/auth0/login' );
     }else{
-      var user = req.user;
+      var user = strategy ? req.user : null
       var result = await db.readItems();
       if( result.status ){
         res.render( 'index', { items: result.results, user: user } );

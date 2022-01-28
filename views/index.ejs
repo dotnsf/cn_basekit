@@ -61,7 +61,7 @@ function deleteItem( item_id ){
 </script>
 </head>
 <body>
-<% if( user ){ %>
+<% if( user && user.id ){ %>
   <div class="dropdown" style="text-align: right;">
     <a href="#" title="<%= user.nickname %>" class="btn btn-xs btn-success btn-xs dropdown-toggle" data-toggle="dropdown" id="dropdownMenuLink" aria-haspopup="true" aria-expandable="false">
       <img src="<%= user.picture %>" alt="#" width="25px"/>
