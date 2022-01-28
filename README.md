@@ -41,7 +41,7 @@ This sample application can handle database maintenances. Even if DB would stop 
 
 - `REDIS_DATABASE_URL` : URL connection string for Redis(, if needed)
 
-- Following all four values need to be set
+- Following all four values need to be set, if you use IDaaS with Auth0
 
   - `AUTH0_CALLBACK_URL` : Callback URL after authentication with Auth0
 
@@ -60,7 +60,7 @@ This sample application can handle database maintenances. Even if DB would stop 
 
   - `http://localhost:5984/_utils/`
 
-  - `db` データベースを作成しておく
+  - Create `db` database.
 
 - MySQL
 
