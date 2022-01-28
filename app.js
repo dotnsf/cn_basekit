@@ -51,7 +51,8 @@ var sess = {
   secret: 'cn_basekit',
   cookie: {
     path: '/',
-    maxAge: (7 * 24 * 60 * 60 * 1000)
+    //maxAge: (7 * 24 * 60 * 60 * 1000)
+    maxAge: (1 * 60 * 1000)
   },
   resave: false,
   saveUninitialized: true
@@ -65,7 +66,7 @@ app.use( passport.session() );
 
 //. login
 app.get( '/auth0/login', passport.authenticate( 'auth0', {
-  scope: settings.auth0_scope   //. #1
+  scope: 'openid profile email'
 }, function( req, res ){
   res.redirect( '/' );
 }));
