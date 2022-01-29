@@ -82,6 +82,18 @@ This sample application can handle database maintenances. Even if DB would stop 
 
   - `db=# create table if not exists items ( id varchar(50) not null primary key, name varchar(50) default '', price int default 0, created bigint default 0, updated bigint default 0 );`
 
+- Db2
+
+  - `$ docker run -d --name db2 -p 50000:50000 --privileged=true -e LICENSE=accept -e DB2INST1_PASSWORD=db2inst1 -e DBNAME=db ibmcom/db2`
+
+  - `$ docker container exec -it db2 bash -c "su - db2inst1"`
+
+  - `$ db2`
+
+  - `db2 => activate database db`
+
+  - `db2 => connecto to db`
+
 - Redis
 
   - `$ docker run --name redis -d -p 6379:6379 redis`
