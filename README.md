@@ -37,7 +37,11 @@ This sample application can handle database maintenances. Even if DB would stop 
 
   - `POSTGRES_DATABASE_URL` : URL connection string for PostgreSQL
 
-- `DBTYPE` : Which type of DB to use(COUCHDB/MYSQL/POSTGRES)
+  - `DB2_DATABASE_URL` : URL connection string for DB2(beta)
+
+  - `MONGO_DATABASE_URL` : URL connection string for MongoDB(beta)
+
+- `DBTYPE` : Which type of DB to use(couchdb/mysql/postgres/db2/mongo)
 
 - `REDIS_DATABASE_URL` : URL connection string for Redis(, if needed)
 
@@ -93,6 +97,18 @@ This sample application can handle database maintenances. Even if DB would stop 
   - `db2 => activate database db`
 
   - `db2 => connecto to db`
+
+- MongoDB
+
+  - `$ docker run -d --name mongo -p 27017:27017 -e MONGO_INITDB_ROOT_USERNAME=user -e MONGO_INITDB_ROOT_PASSWORD=pass -e MONGO_INITDB_DATABASE=db mongo`
+
+  - `$ docker container exec -it mongo bash`
+
+  - `# mongo db -u user --authenticationDatabase admin`
+
+  - `> use db`
+
+  - `> db.createCollection('db');`
 
 - Redis
 

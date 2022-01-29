@@ -2,6 +2,7 @@
 exports.postgres_database_url = 'postgres://user:pass@localhost:5432/db';
 exports.mysql_database_url = 'mysql://user:pass@localhost:3306/db';
 exports.db2_database_url = 'DATABASE=db;HOSTNAME=localhost;UID=db2inst1;PWD=db2inst1;PORT=50000;PROTOCOL=TCPIP';
+exports.mongo_database_url = 'mongodb://user:pass@localhost:27017/local?authSource=admin';
 exports.couchdb_database_url = 'http://user:pass@localhost:5984/db';
 
 exports.dbtype = 'postgres';
