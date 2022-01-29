@@ -8,9 +8,13 @@ var settings = require( './settings' );
 
 var dbtype = 'DBTYPE' in process.env ? process.env.DBTYPE : settings.dbtype; 
 var db = require( './api/db_' + dbtype );
+if( dbtype == 'redis' ){
+  db = db.api;
+}
 app.use( '/api/db', db );
 
-var redisClient = require( './api/db_redis' );
+var redisObj = require( './api/db_redis' );
+var redisClient = redisObj.redisClient;
 
 app.use( express.Router() );
 app.use( express.static( __dirname + '/public' ) );

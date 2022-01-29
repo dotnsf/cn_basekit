@@ -1,5 +1,4 @@
 //. db_redis.js
-/*
 var express = require( 'express' ),
     multer = require( 'multer' ),
     bodyParser = require( 'body-parser' ),
@@ -7,7 +6,6 @@ var express = require( 'express' ),
     uuidv1 = require( 'uuid/v1' ),
     api = express();
 
-    */
 var settings = require( '../settings' );
 
 var settings_redis_url = 'REDIS_DATABASE_URL' in process.env ? process.env.REDIS_DATABASE_URL : settings.redis_database_url; 
@@ -25,7 +23,6 @@ if( settings_redis_url ){
   });
 }
 
-/*
 api.use( multer( { dest: './tmp/' } ).single( 'image' ) );
 api.use( bodyParser.urlencoded( { extended: true } ) );
 api.use( bodyParser.json() );
@@ -34,38 +31,21 @@ api.use( express.Router() );
 //. Create
 api.createItem = function( item ){
   return new Promise( ( resolve, reject ) => {
-    if( pg ){
-      conn = await pg.connect();
-      if( conn ){
-        try{
-          var sql = 'insert into items set ?';
-          //var sql = "select * from items";
-          if( !item.id ){
-            item.id = uuidv1();
-          }
-          var t = ( new Date() ).getTime();
-          item.created = t;
-          item.updated = t;
-          console.log( item );
-          conn.query( query, function( err, result ){
-            if( err ){
-              console.log( err );
-              resolve( { status: false, error: err } );
-            }else{
-              resolve( { status: true, result: result } );
-            }
-          });
-        }catch( e ){
-          console.log( e );
-          resolve( { status: false, error: err } );
-        }finally{
-          if( conn ){
-            conn.release();
-          }
-        }
-      }else{
-        resolve( { status: false, error: 'no connection.' } );
+    if( redisClient ){
+      if( !item.id ){
+        item.id = uuidv1();
       }
+      var t = ( new Date() ).getTime();
+      item.created = t;
+      item.updated = t;
+      redisClient.set( item.id, item, function( err ){
+        if( err ){
+          console.log( err );
+          resolve( { status: false, error: err } );
+        }else{
+          resolve( { status: true, result: item } );
+        }
+      });
     }else{
       resolve( { status: false, error: 'db not ready.' } );
     }
@@ -75,34 +55,15 @@ api.createItem = function( item ){
 //. Read
 api.readItem = function( item_id ){
   return new Promise( ( resolve, reject ) => {
-    if( pg ){
-      conn = await pg.connect();
-      if( conn ){
-        try{
-          var sql = "select * from items where id = ?";
-          conn.query( sql, [ item_id ], function( err, results ){
-            if( err ){
-              console.log( err );
-              resolve( { status: false, error: err } );
-            }else{
-              if( results && results.length > 0 ){
-                resolve( { status: true, result: results[0] } );
-              }else{
-                resolve( { status: false, error: 'no data' } );
-              }
-            }
-          });
-        }catch( e ){
-          console.log( e );
+    if( redisClient ){
+      redisClient.get( item_id, item, function( err, result ){
+        if( err ){
+          console.log( err );
           resolve( { status: false, error: err } );
-        }finally{
-          if( conn ){
-            conn.release();
-          }
+        }else{
+          resolve( { status: true, result: result } );
         }
-      }else{
-        resolve( { status: false, error: 'no connection.' } );
-      }
+      });
     }else{
       resolve( { status: false, error: 'db not ready.' } );
     }
@@ -112,36 +73,16 @@ api.readItem = function( item_id ){
 //. Reads
 api.readItems = function( limit, offset ){
   return new Promise( ( resolve, reject ) => {
-    if( pg ){
-      conn = await pg.connect();
-      if( conn ){
-        try{
-          var sql = "select * from items order by updated";
-          if( limit ){
-            sql += " limit " + limit;
-          }
-          if( offset ){
-            sql += " start " + offset;
-          }
-          conn.query( sql, function( err, results ){
-            if( err ){
-              console.log( err );
-              resolve( { status: false, error: err } );
-            }else{
-              resolve( { status: true, results: results } );
-            }
-          });
-        }catch( e ){
-          console.log( e );
+    if( redisClient ){
+      redisClient.keys( function( err, result ){
+        if( err ){
+          console.log( { err } );
           resolve( { status: false, error: err } );
-        }finally{
-          if( conn ){
-            conn.release();
-          }
+        }else{
+          console.log( { result } );
+          resolve( { status: true, result: result } );
         }
-      }else{
-        resolve( { status: false, error: 'no connection.' } );
-      }
+      });
     }else{
       resolve( { status: false, error: 'db not ready.' } );
     }
@@ -151,39 +92,20 @@ api.readItems = function( limit, offset ){
 //. Update
 api.updateItem = function( item ){
   return new Promise( ( resolve, reject ) => {
-    if( pg ){
-      conn = await pg.connect();
-      if( conn ){
-        if( !item.id ){
-          resolve( { status: false, error: 'no id.' } );
-        }else{
-          var id = item.id;
-          delete item['id'];
-
-          try{
-            var sql = 'update items set ? where id = ?';
-            //var sql = "select * from items";
-            var t = ( new Date() ).getTime();
-            item.updated = t;
-            conn.query( sql, [ item, id ], function( err, result ){
-              if( err ){
-                console.log( err );
-                resolve( { status: false, error: err } );
-              }else{
-                resolve( { status: true, result: result } );
-              }
-            });
-          }catch( e ){
-            console.log( e );
-            resolve( { status: false, error: err } );
-          }finally{
-            if( conn ){
-              conn.release();
-            }
-          }
-        }
+    if( redisClient ){
+      if( !item.id ){
+        resolve( { status: false, error: 'id not specified.' } );
       }else{
-        resolve( { status: false, error: 'no connection.' } );
+        var t = ( new Date() ).getTime();
+        item.updated = t;
+        redisClient.set( item.id, item, function( err ){
+          if( err ){
+            console.log( err );
+            resolve( { status: false, error: err } );
+          }else{
+            resolve( { status: true, result: item } );
+          }
+        });
       }
     }else{
       resolve( { status: false, error: 'db not ready.' } );
@@ -194,30 +116,15 @@ api.updateItem = function( item ){
 //. Delete
 api.deleteItem = function( item_id ){
   return new Promise( ( resolve, reject ) => {
-    if( pg ){
-      conn = await pg.connect();
-      if( conn ){
-        try{
-          var sql = "delete from items where id = ?";
-          conn.query( sql, [ item_id ], function( err, result ){
-            if( err ){
-              console.log( err );
-              resolve( { status: false, error: err } );
-            }else{
-              resolve( { status: true, result: result } );
-            }
-          });
-        }catch( e ){
-          console.log( e );
+    if( redisClient ){
+      redisClient.del( item_id, function( err, result ){
+        if( err ){
+          console.log( err );
           resolve( { status: false, error: err } );
-        }finally{
-          if( conn ){
-            conn.release();
-          }
+        }else{
+          resolve( { status: true, result: result } );
         }
-      }else{
-        resolve( { status: false, error: 'no connection.' } );
-      }
+      });
     }else{
       resolve( { status: false, error: 'db not ready.' } );
     }
@@ -282,7 +189,6 @@ api.delete( '/item/:id', async function( req, res ){
     res.end();
   });
 });
-*/
 
 //. api をエクスポート
-module.exports = redisClient;
+module.exports = { api: api, redisClient: redisClient };
