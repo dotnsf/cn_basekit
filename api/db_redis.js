@@ -100,6 +100,13 @@ api.readItems = function( limit, offset ){
                 cnt ++;
 
                 if( cnt == results.length ){
+                  if( offset ){
+                    items.splice( 0, offset );
+                  }
+                  if( limit ){
+                    items.splice( limit )
+                  }
+
                   resolve( { status: true, results: items } );
                 }
               });
@@ -107,6 +114,13 @@ api.readItems = function( limit, offset ){
               cnt ++;
 
               if( cnt == results.length ){
+                if( offset ){
+                  items.splice( 0, offset );
+                }
+                if( limit ){
+                  items.splice( limit )
+                }
+
                 resolve( { status: true, results: items } );
               }
             }
