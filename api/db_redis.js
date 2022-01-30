@@ -175,6 +175,45 @@ api.deleteItem = function( item_id ){
   });
 };
 
+api.deleteItems = function(){
+  return new Promise( ( resolve, reject ) => {
+    if( redisClient ){
+      redisClient.keys( '*', function( err, results ){
+        if( err ){
+          console.log( { err } );
+          resolve( { status: false, error: err } );
+        }else{
+          var items = [];
+          var cnt = 0;
+          for( var i = 0; i < results.length; i ++ ){
+            if( results[i].indexOf( ':' ) == -1 ){
+              redisClient.del( results[i], function( err, result ){
+                if( err ){
+                  console.log( err );
+                }else{
+                }
+                cnt ++;
+
+                if( cnt == results.length ){
+                  resolve( { status: true } );
+                }
+              });
+            }else{
+              cnt ++;
+
+              if( cnt == results.length ){
+                resolve( { status: true } );
+              }
+            }
+          }
+        }
+      });
+    }else{
+      resolve( { status: false, error: 'db not ready.' } );
+    }
+  });
+};
+
 
 api.post( '/item', async function( req, res ){
   res.contentType( 'application/json; charset=utf-8' );
@@ -228,6 +267,16 @@ api.delete( '/item/:id', async function( req, res ){
 
   var item_id = req.params.id;
   api.deleteItem( item_id ).then( function( result ){
+    res.status( result.status ? 200 : 400 );
+    res.write( JSON.stringify( result, null, 2 ) );
+    res.end();
+  });
+});
+
+api.delete( '/items', function( req, res ){
+  res.contentType( 'application/json; charset=utf-8' );
+
+  api.deleteItems().then( function( result ){
     res.status( result.status ? 200 : 400 );
     res.write( JSON.stringify( result, null, 2 ) );
     res.end();

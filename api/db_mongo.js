@@ -146,6 +146,23 @@ api.deleteItem = function( item_id ){
   });
 };
 
+api.deleteItems = async function(){
+  return new Promise( async ( resolve, reject ) => {
+    if( collection ){
+      collection.deleteMany( {}, function( err, result ){
+        if( err ){
+          console.log( err );
+          resolve( { status: false, error: err } );
+        }else{
+          resolve( { status: true, result: result } );
+        }
+      });
+    }else{
+      resolve( { status: false, error: 'no db' } );
+    }
+  });
+};
+
 
 api.post( '/item', async function( req, res ){
   res.contentType( 'application/json; charset=utf-8' );
@@ -219,6 +236,16 @@ api.delete( '/item/:id', function( req, res ){
 
   var item_id = req.params.id;
   api.deleteItem( item_id ).then( function( result ){
+    res.status( result.status ? 200 : 400 );
+    res.write( JSON.stringify( result, null, 2 ) );
+    res.end();
+  });
+});
+
+api.delete( '/items', function( req, res ){
+  res.contentType( 'application/json; charset=utf-8' );
+
+  api.deleteItems().then( function( result ){
     res.status( result.status ? 200 : 400 );
     res.write( JSON.stringify( result, null, 2 ) );
     res.end();

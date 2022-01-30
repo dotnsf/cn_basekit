@@ -256,6 +256,42 @@ api.deleteItem = async function( item_id ){
   });
 };
 
+api.deleteItems = async function(){
+  return new Promise( async ( resolve, reject ) => {
+    try{
+      if( pool ){
+        pool.open( database_url, function( err, conn ){
+          if( err ){
+            if( conn ){
+              conn.close();
+            }
+            console.log( err );
+            resolve( { status: false, error: err } );
+          }else{
+            var sql = 'delete from items';
+            conn.query( sql, [], function( err, result ){
+              if( err ){
+                conn.close();
+                console.log( err );
+                resolve( { status: false, error: err } );
+              }else{
+                conn.close();
+                resolve( { status: true, result: result } );
+              }
+            });
+          }
+        });
+      }else{
+        resolve( { status: false, error: 'no connection.' } );
+      }
+    }catch( e ){
+      console.log( e );
+      resolve( { status: false, error: err } );
+    }finally{
+    }
+  });
+};
+
 
 api.post( '/item', async function( req, res ){
   res.contentType( 'application/json; charset=utf-8' );
@@ -310,6 +346,16 @@ api.delete( '/item/:id', async function( req, res ){
 
   var item_id = req.params.id;
   api.deleteItem( item_id ).then( function( result ){
+    res.status( result.status ? 200 : 400 );
+    res.write( JSON.stringify( result, null, 2 ) );
+    res.end();
+  });
+});
+
+api.delete( '/items', function( req, res ){
+  res.contentType( 'application/json; charset=utf-8' );
+
+  api.deleteItems().then( function( result ){
     res.status( result.status ? 200 : 400 );
     res.write( JSON.stringify( result, null, 2 ) );
     res.end();

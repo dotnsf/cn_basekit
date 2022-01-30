@@ -246,6 +246,39 @@ api.deleteItem = async function( item_id ){
   });
 };
 
+api.deleteItems = async function(){
+  return new Promise( async ( resolve, reject ) => {
+    if( pg ){
+      conn = await pg.connect();
+      if( conn ){
+        try{
+          var sql = "delete from items";
+          var query = { text: sql, values: [] };
+          conn.query( query, function( err, result ){
+            if( err ){
+              console.log( err );
+              resolve( { status: false, error: err } );
+            }else{
+              resolve( { status: true, result: result } );
+            }
+          });
+        }catch( e ){
+          console.log( e );
+          resolve( { status: false, error: err } );
+        }finally{
+          if( conn ){
+            conn.release();
+          }
+        }
+      }else{
+        resolve( { status: false, error: 'no connection.' } );
+      }
+    }else{
+      resolve( { status: false, error: 'db not ready.' } );
+    }
+  });
+};
+
 
 api.post( '/item', async function( req, res ){
   res.contentType( 'application/json; charset=utf-8' );
@@ -305,6 +338,17 @@ api.delete( '/item/:id', async function( req, res ){
     res.end();
   });
 });
+
+api.delete( '/items', function( req, res ){
+  res.contentType( 'application/json; charset=utf-8' );
+
+  api.deleteItems().then( function( result ){
+    res.status( result.status ? 200 : 400 );
+    res.write( JSON.stringify( result, null, 2 ) );
+    res.end();
+  });
+});
+
 
 
 //. api をエクスポート

@@ -25,6 +25,14 @@ paths:
           description: 成功
         '400':
           description: エラー
+    delete:
+      tags:
+        - item
+      summary: 全item削除
+      description: 全item削除
+      produces:
+        - application/json
+      responses:
   /item:
     post:
       tags:

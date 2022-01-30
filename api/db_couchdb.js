@@ -79,7 +79,7 @@ api.createDoc = function( db, doc, id ){
     }
   });
 };
-api.createItem = async function( db, doc, id ){
+api.createItem = async function( doc, id ){
   return await api.createDoc( db, doc, id );
 };
 
@@ -137,7 +137,7 @@ api.getDoc = function( db, id ){
     }
   });
 };
-api.readItem = async function( db, id ){
+api.readItem = async function( id ){
   return await api.getDoc( db, id );
 };
 
@@ -219,7 +219,7 @@ api.updateDoc = function( db, doc ){
     }
   });
 };
-api.updateItem = async function( db, doc ){
+api.updateItem = async function( doc ){
   return await api.updateDoc( db, doc );
 };
 
@@ -283,8 +283,58 @@ api.deleteDoc = function( db, id ){
     }
   });
 };
-api.deleteItem = async function( db, id ){
+api.deleteItem = async function( id ){
   return await api.deleteDoc( db, id );
+};
+
+api.deleteDocs = function( db ){
+  return new Promise( ( resolve, reject ) => {
+    if( db ){
+      var url = database_url + '/_all_docs';
+      var option = {
+        url: url,
+        method: 'GET',
+        headers: db_headers
+      };
+      request( option, ( err, res, body ) => {
+        if( err ){
+          resolve( { status: false, error: err } );
+        }else{
+          body = JSON.parse( body );
+          var docs = [];
+          if( body && body.rows ){
+            body.rows.forEach( function( doc ){
+              doc.doc._deleted = true;
+              docs.push( doc.doc );
+            });
+
+            //. バルク削除して resolve
+            url = database_url + '/_bulk_docs';
+            option = {
+              url: url,
+              method: 'DELETE',
+              json: { docs: docs },
+              headers: db_headers
+            };
+            request( option, ( err, res, body ) => {
+              if( err ){
+                resolve( { status: false, error: err } );
+              }else{
+                resolve( { status: true } );
+              }
+            });
+          }else{
+            resolve( { status: false, error: 'no docs found.' } );
+          }
+        }
+      });
+    }else{
+      resolve( { status: false, error: 'no db' } );
+    }
+  });
+};
+api.deleteItems = async function(){
+  return await api.deleteDocs( db );
 };
 
 
@@ -470,7 +520,7 @@ api.post( '/item', async function( req, res ){
   var t = ( new Date() ).getTime();
   item.created = t;
   item.updated = t;
-  api.createDoc( db, item, item.id ).then( function( result ){
+  api.createItem( item, item.id ).then( function( result ){
     res.status( result.status ? 200 : 400 );
     res.write( JSON.stringify( result, null, 2 ) );
     res.end();
@@ -481,7 +531,7 @@ api.get( '/item/:id', async function( req, res ){
   res.contentType( 'application/json; charset=utf-8' );
 
   var item_id = req.params.id;
-  api.getDoc( db, item_id ).then( function( result ){
+  api.readItem( item_id ).then( function( result ){
     res.status( result.status ? 200 : 400 );
     res.write( JSON.stringify( result, null, 2 ) );
     res.end();
@@ -505,7 +555,7 @@ api.get( '/items', async function( req, res ){
     }catch( e ){
     }
   }
-  api.getDocs( db, limit, start ).then( function( result ){
+  api.readItems( limit, start ).then( function( result ){
     res.status( result.status ? 200 : 400 );
     res.write( JSON.stringify( result, null, 2 ) );
     res.end();
@@ -519,7 +569,7 @@ api.put( '/item/:id', function( req, res ){
   var item = req.body;
   //item.id = item_id;
   item._id = item_id;
-  api.updateDoc( db, doc ).then( function( result ){
+  api.updateItem( doc ).then( function( result ){
     res.status( result.status ? 200 : 400 );
     res.write( JSON.stringify( result, null, 2 ) );
     res.end();
@@ -530,10 +580,27 @@ api.delete( '/item/:id', function( req, res ){
   res.contentType( 'application/json; charset=utf-8' );
 
   var item_id = req.params.id;
-  api.deleteDoc( db, item_id ).then( function( result ){
+  api.deleteItem( item_id ).then( function( result ){
     res.status( result.status ? 200 : 400 );
     res.write( JSON.stringify( result, null, 2 ) );
     res.end();
+  });
+});
+
+api.delete( '/items', function( req, res ){
+  res.contentType( 'application/json; charset=utf-8' );
+
+  api.readItems().then( function( result ){
+    if( result && result.status ){
+      var docs = [];
+      for( var i = 0; i < result.results.length; i ++ ){
+        result.results[i]._deleted = true;
+      }
+    }else{
+      res.status( 400 );
+      res.write( JSON.stringify( result.error, null, 2 ) );
+      res.end();
+    }
   });
 });
 
