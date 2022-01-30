@@ -101,6 +101,25 @@ api.readItems = function( limit, start ){
   });
 };
 
+api.queryItems = function( key, limit, start ){
+  return new Promise( async ( resolve, reject ) => {
+    if( collection ){
+      var items = await collection.find( { name: key } ).toArray();
+
+      if( start ){
+        items.splice( 0, start );
+      }
+      if( limit ){
+        items.splice( limit )
+      }
+
+      resolve( { status: true, results: items } );
+    }else{
+      resolve( { status: false, error: 'no db' } );
+    }
+  });
+};
+
 api.updateItem = function( item ){
   return new Promise( ( resolve, reject ) => {
     if( collection ){
@@ -212,6 +231,17 @@ api.get( '/items', async function( req, res ){
     }
   }
   api.readItems( limit, start ).then( function( result ){
+    res.status( result.status ? 200 : 400 );
+    res.write( JSON.stringify( result, null, 2 ) );
+    res.end();
+  });
+});
+
+api.get( '/items/:key', async function( req, res ){
+  res.contentType( 'application/json; charset=utf-8' );
+
+  var key = req.params.key;
+  api.queryItems( key ).then( function( result ){
     res.status( result.status ? 200 : 400 );
     res.write( JSON.stringify( result, null, 2 ) );
     res.end();

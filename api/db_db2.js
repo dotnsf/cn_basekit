@@ -172,6 +172,48 @@ api.readItems = async function( limit, offset ){
   });
 };
 
+api.queryItems = async function( key, limit, offset ){
+  return new Promise( async ( resolve, reject ) => {
+    try{
+      if( pool ){
+        pool.open( database_url, function( err, conn ){
+          if( err ){
+            if( conn ){
+              conn.close();
+            }
+            console.log( err );
+            resolve( { status: false, error: err } );
+          }else{
+            var sql = 'select "id", "name", "price", "created", "updated" from items where "name" like \'%' + key + '%\' order by "updated"';
+            if( offset ){
+              sql += " offset " + offset + " rows";
+            }
+            if( limit ){
+              sql += " fetch first " + limit + " rows only";
+            }
+            conn.query( sql, [], function( err, results ){
+              if( err ){
+                conn.close();
+                console.log( err );
+                resolve( { status: false, error: err } );
+              }else{
+                conn.close();
+                resolve( { status: true, results: results } );
+              }
+            });
+          }
+        });
+      }else{
+        resolve( { status: false, error: 'no connection.' } );
+      }
+    }catch( e ){
+      console.log( e );
+      resolve( { status: false, error: err } );
+    }finally{
+    }
+  });
+};
+
 //. Update
 api.updateItem = async function( item ){
   return new Promise( async ( resolve, reject ) => {
@@ -324,6 +366,17 @@ api.get( '/items', async function( req, res ){
   api.readItems( limit, offset ).then( function( results ){
     res.status( results.status ? 200 : 400 );
     res.write( JSON.stringify( results, null, 2 ) );
+    res.end();
+  });
+});
+
+api.get( '/items/:key', async function( req, res ){
+  res.contentType( 'application/json; charset=utf-8' );
+
+  var key = req.params.key;
+  api.queryItems( key ).then( function( result ){
+    res.status( result.status ? 200 : 400 );
+    res.write( JSON.stringify( result, null, 2 ) );
     res.end();
   });
 });

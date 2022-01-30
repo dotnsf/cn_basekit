@@ -33,6 +33,25 @@ paths:
       produces:
         - application/json
       responses:
+  /items/{key}:
+    get:
+      tags:
+        - item
+      summary: 検索
+      description: 検索
+      produces:
+        - application/json
+      parameters:
+        - name: key
+          type: string
+          in: path
+          description: 検索キー
+          required: true
+      responses:
+        '200':
+          description: 成功
+        '400':
+          description: エラー
   /item:
     post:
       tags:

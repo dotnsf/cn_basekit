@@ -180,6 +180,54 @@ api.readItems = async function( limit, start ){
   return await api.getDocs( db, limit, start );
 };
 
+api.queryDocs = function( db, key, limit, start ){
+  return new Promise( ( resolve, reject ) => {
+    if( db ){
+      var url = database_url + '/_find';
+      /*
+      if( limit ){
+        url += '&limit=' + limit;
+      }
+      if( start ){
+        url += '&skip=' + start;
+      }
+      */
+      var option = {
+        url: url,
+        method: 'POST',
+        json: { selector: { name: key } },
+        headers: db_headers
+      };
+      request( option, ( err, res, body ) => {
+        if( err ){
+          resolve( { status: false, error: err } );
+        }else{
+          body = JSON.parse( body );
+          var docs = [];
+          if( body && body.docs ){
+            body.docs.forEach( function( doc ){
+              docs.push( doc );
+            });
+          }
+
+          if( start ){
+            docs.splice( 0, start );
+          }
+          if( limit ){
+            docs.splice( limit )
+          }
+          resolve( { status: true, results: docs } );
+        }
+      });
+    }else{
+      resolve( { status: false, error: 'no db' } );
+    }
+  });
+};
+api.queryItems = async function( key, limit, start ){
+  return await api.queryDocs( db, key, limit, start );
+};
+
 //. １件更新用関数
 api.updateDoc = function( db, doc ){
   return new Promise( ( resolve, reject ) => {
@@ -556,6 +604,17 @@ api.get( '/items', async function( req, res ){
     }
   }
   api.readItems( limit, start ).then( function( result ){
+    res.status( result.status ? 200 : 400 );
+    res.write( JSON.stringify( result, null, 2 ) );
+    res.end();
+  });
+});
+
+api.get( '/items/:key', async function( req, res ){
+  res.contentType( 'application/json; charset=utf-8' );
+
+  var key = req.params.key;
+  api.queryItems( key ).then( function( result ){
     res.status( result.status ? 200 : 400 );
     res.write( JSON.stringify( result, null, 2 ) );
     res.end();

@@ -83,7 +83,7 @@ api.readItem = function( item_id ){
 };
 
 //. Reads
-api.readItems = function( limit, offset ){
+api.readItems = async function( limit, offset ){
   return new Promise( ( resolve, reject ) => {
     if( redisClient ){
       redisClient.keys( '*', function( err, results ){
@@ -97,6 +97,60 @@ api.readItems = function( limit, offset ){
             if( results[i].indexOf( ':' ) == -1 ){
               redisClient.get( results[i], function( err, item ){
                 items.push( JSON.parse( item ) );
+                cnt ++;
+
+                if( cnt == results.length ){
+                  if( offset ){
+                    items.splice( 0, offset );
+                  }
+                  if( limit ){
+                    items.splice( limit )
+                  }
+
+                  resolve( { status: true, results: items } );
+                }
+              });
+            }else{
+              cnt ++;
+
+              if( cnt == results.length ){
+                if( offset ){
+                  items.splice( 0, offset );
+                }
+                if( limit ){
+                  items.splice( limit )
+                }
+
+                resolve( { status: true, results: items } );
+              }
+            }
+          }
+        }
+      });
+    }else{
+      resolve( { status: false, error: 'db not ready.' } );
+    }
+  });
+};
+
+api.queryItems = function( key, limit, offset ){
+  return new Promise( ( resolve, reject ) => {
+    if( redisClient ){
+      redisClient.keys( '*', function( err, results ){
+        if( err ){
+          console.log( { err } );
+          resolve( { status: false, error: err } );
+        }else{
+          //. #9 もう少し効率いい検索方法はないものか？
+          var items = [];
+          var cnt = 0;
+          for( var i = 0; i < results.length; i ++ ){
+            if( results[i].indexOf( ':' ) == -1 ){
+              redisClient.get( results[i], function( err, item ){
+                item = JSON.parse( item );
+                if( item.name.indexOf( key ) > -1 ){
+                  items.push( item );
+                }
                 cnt ++;
 
                 if( cnt == results.length ){
@@ -245,6 +299,17 @@ api.get( '/items', async function( req, res ){
   api.readItems( limit, offset ).then( function( results ){
     res.status( results.status ? 200 : 400 );
     res.write( JSON.stringify( results, null, 2 ) );
+    res.end();
+  });
+});
+
+api.get( '/items/:key', async function( req, res ){
+  res.contentType( 'application/json; charset=utf-8' );
+
+  var key = req.params.key;
+  api.queryItems( key ).then( function( result ){
+    res.status( result.status ? 200 : 400 );
+    res.write( JSON.stringify( result, null, 2 ) );
     res.end();
   });
 });

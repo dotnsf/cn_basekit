@@ -171,6 +171,45 @@ api.readItems = async function( limit, offset ){
   });
 };
 
+api.queryItems = async function( key, limit, offset ){
+  return new Promise( async ( resolve, reject ) => {
+    if( pg ){
+      conn = await pg.connect();
+      if( conn ){
+        try{
+          var sql = "select * from items where name like '%" + key + "%' order by updated";
+          if( limit ){
+            sql += " limit " + limit;
+          }
+          if( offset ){
+            sql += " start " + offset;
+          }
+          var query = { text: sql, values: [] };
+          conn.query( query, function( err, result ){
+            if( err ){
+              console.log( err );
+              resolve( { status: false, error: err } );
+            }else{
+              resolve( { status: true, results: result.rows } );
+            }
+          });
+        }catch( e ){
+          console.log( e );
+          resolve( { status: false, error: err } );
+        }finally{
+          if( conn ){
+            conn.release();
+          }
+        }
+      }else{
+        resolve( { status: false, error: 'no connection.' } );
+      }
+    }else{
+      resolve( { status: false, error: 'db not ready.' } );
+    }
+  });
+};
+
 //. Update
 api.updateItem = async function( item ){
   return new Promise( async ( resolve, reject ) => {
@@ -314,6 +353,18 @@ api.get( '/items', async function( req, res ){
     res.end();
   });
 });
+
+api.get( '/items/:key', async function( req, res ){
+  res.contentType( 'application/json; charset=utf-8' );
+
+  var key = req.params.key;
+  api.queryItems( key ).then( function( result ){
+    res.status( result.status ? 200 : 400 );
+    res.write( JSON.stringify( result, null, 2 ) );
+    res.end();
+  });
+});
+
 
 api.put( '/item/:id', async function( req, res ){
   res.contentType( 'application/json; charset=utf-8' );
