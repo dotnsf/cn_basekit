@@ -19,8 +19,20 @@ if( settings_redis_url ){
   console.log( 'redis connected' );
   redisClient.on( 'error', function( err ){
     console.error( 'on error redis', err );
-    redisClient = redis.createClient( settings_redis_url, {} );
+    try_reconnect( 1000 );
   });
+}
+
+function try_reconnect( ts ){
+  setTimeout( function(){
+    console.log( 'reconnecting...' );
+    redisClient = redis.createClient( settings_redis_url, {} );
+    redisClient.on( 'error', function( err ){
+      console.error( 'on error redis', err );
+      ts = ( ts < 10000 ? ( ts + 1000 ) : ts );
+      try_reconnect( ts );
+    });
+  }, ts );
 }
 
 api.use( multer( { dest: './tmp/' } ).single( 'image' ) );
@@ -38,7 +50,7 @@ api.createItem = function( item ){
       var t = ( new Date() ).getTime();
       item.created = t;
       item.updated = t;
-      redisClient.set( item.id, item, function( err ){
+      redisClient.set( item.id, JSON.stringify( item ), function( err ){
         if( err ){
           console.log( err );
           resolve( { status: false, error: err } );
@@ -56,12 +68,12 @@ api.createItem = function( item ){
 api.readItem = function( item_id ){
   return new Promise( ( resolve, reject ) => {
     if( redisClient ){
-      redisClient.get( item_id, item, function( err, result ){
+      redisClient.get( item_id, function( err, result ){
         if( err ){
           console.log( err );
           resolve( { status: false, error: err } );
         }else{
-          resolve( { status: true, result: result } );
+          resolve( { status: true, result: JSON.parse( result ) } );
         }
       });
     }else{
@@ -74,13 +86,31 @@ api.readItem = function( item_id ){
 api.readItems = function( limit, offset ){
   return new Promise( ( resolve, reject ) => {
     if( redisClient ){
-      redisClient.keys( function( err, result ){
+      redisClient.keys( '*', function( err, results ){
         if( err ){
           console.log( { err } );
           resolve( { status: false, error: err } );
         }else{
-          console.log( { result } );
-          resolve( { status: true, result: result } );
+          var items = [];
+          var cnt = 0;
+          for( var i = 0; i < results.length; i ++ ){
+            if( results[i].indexOf( ':' ) == -1 ){
+              redisClient.get( results[i], function( err, item ){
+                items.push( JSON.parse( item ) );
+                cnt ++;
+
+                if( cnt == results.length ){
+                  resolve( { status: true, results: items } );
+                }
+              });
+            }else{
+              cnt ++;
+
+              if( cnt == results.length ){
+                resolve( { status: true, results: items } );
+              }
+            }
+          }
         }
       });
     }else{
@@ -89,9 +119,9 @@ api.readItems = function( limit, offset ){
   });
 };
 
-//. Update
-api.updateItem = function( item ){
-  return new Promise( ( resolve, reject ) => {
+//. update
+api.updateitem = function( item ){
+  return new promise( ( resolve, reject ) => {
     if( redisClient ){
       if( !item.id ){
         resolve( { status: false, error: 'id not specified.' } );
