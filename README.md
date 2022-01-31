@@ -64,7 +64,7 @@ This sample application can handle database maintenances. Even if DB would stop 
 
   - `http://localhost:5984/_utils/`
 
-  - Create `db` database.
+    - Create `db` database.
 
 - MySQL
 
@@ -109,6 +109,23 @@ This sample application can handle database maintenances. Even if DB would stop 
   - `> use db`
 
   - `> db.createCollection('db');`
+
+- CouchBase
+
+  - `$ docker run -d --name couchbase -p 8091-8094:8091-8094 -p 11210:11210 couchbase`
+
+  - `http://localhost:8091/`
+
+    - Create `cluster` cluster.
+
+    - Create `db` buckets.
+
+  - `$ docker container exec -it couchbase cbq --user user`
+
+  - `cbq> create primary index on \\`default\\`:\\`db\\`;`
+
+  - `cbq> \quit;`
+
 
 - Redis
 
