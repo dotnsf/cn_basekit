@@ -37,11 +37,13 @@ This sample application can handle database maintenances. Even if DB would stop 
 
   - `POSTGRES_DATABASE_URL` : URL connection string for PostgreSQL
 
-  - `DB2_DATABASE_URL` : URL connection string for DB2(beta)
+  - `DB2_DATABASE_URL` : URL connection string for DB2
 
-  - `MONGO_DATABASE_URL` : URL connection string for MongoDB(beta)
+  - `MONGO_DATABASE_URL` : URL connection string for MongoDB
 
-- `DBTYPE` : Which type of DB to use(couchdb/mysql/postgres/db2/mongo)
+  - `COUCHBASE_DATABASE_URL` : URL connection string for CouchBase(beta)
+
+- `DBTYPE` : Which type of DB to use(couchdb/mysql/postgres/db2/mongo/redis/couchbase)
 
 - `REDIS_DATABASE_URL` : URL connection string for Redis(, if needed)
 
@@ -123,6 +125,8 @@ This sample application can handle database maintenances. Even if DB would stop 
   - `$ docker container exec -it couchbase cbq --user user`
 
   - `cbq> create primary index on \\`default\\`:\\`db\\`;`
+
+    - Create index.
 
   - `cbq> \quit;`
 
