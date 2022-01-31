@@ -256,7 +256,7 @@ api.updateDoc = function( db, doc ){
                 resolve( { status: false, error: err } );
               }else{
                 //result = JSON.parse( result );
-                resolve( { status: true, doc: result } );
+                resolve( { status: true, result: result } );
               }
             });
           }
@@ -285,7 +285,7 @@ api.deleteDb = function( db ){
           resolve( { status: false, error: err } );
         }else{
           body = JSON.parse( body );
-          resolve( { status: true, body: body } );
+          resolve( { status: true, result: body } );
         }
       });
     }else{

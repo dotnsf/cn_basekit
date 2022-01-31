@@ -41,9 +41,11 @@ This sample application can handle database maintenances. Even if DB would stop 
 
   - `MONGO_DATABASE_URL` : URL connection string for MongoDB
 
-  - `COUCHBASE_DATABASE_URL` : URL connection string for CouchBase(beta)
+  - `COUCHBASE_DATABASE_URL` : URL connection string for CouchBase
 
-- `DBTYPE` : Which type of DB to use(couchdb/mysql/postgres/db2/mongo/redis/couchbase)
+  - `ELASTICSEARCH_DATABASE_URL` : URL connection string for ElasticSearch(beta)
+
+- `DBTYPE` : Which type of DB to use(couchdb/mysql/postgres/db2/mongo/redis/couchbase/elasticsearch)
 
 - `REDIS_DATABASE_URL` : URL connection string for Redis(, if needed)
 
@@ -129,6 +131,14 @@ This sample application can handle database maintenances. Even if DB would stop 
     - Create index.
 
   - `cbq> \quit;`
+
+- ElasticSearch
+
+  - `$ docker run -d --name elasticsearch -p 9200:9200 -p 9300:9300 -e discovery.type=single-node docker.elastic.co/elasticsearch/elasticsearch:7.13.2`
+
+  - `$ curl -X PUT "http://localhost:9200/db?pretty&pretty"`
+
+    - index(db) 作成
 
 
 - Redis
