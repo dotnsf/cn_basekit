@@ -166,7 +166,7 @@ api.updateItem = function( item ){
         var t = ( new Date() ).getTime();
         item.updated = t;
 
-        collection.replace( item.id, item, function( err, result ){
+        collection.upsert( item.id, item, function( err, result ){
           if( err ){
             console.log( err );
             resolve( { status: false, error: err } );
