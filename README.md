@@ -29,6 +29,8 @@ This sample application can handle database maintenances. Even if DB would stop 
 
 ## Environment values
 
+- `DBTYPE` : Which type of DB to use(couchdb/mysql/postgres/db2/mongo/redis/couchbase/elasticsearch)
+
 - One of following values ( or `REDIS_DATABASE_URL` ) need to be set:
 
   - `COUCHDB_DATABASE_URL` : URL connection string for CouchDB
@@ -45,9 +47,9 @@ This sample application can handle database maintenances. Even if DB would stop 
 
   - `ELASTICSEARCH_DATABASE_URL` : URL connection string for ElasticSearch
 
-- `DBTYPE` : Which type of DB to use(couchdb/mysql/postgres/db2/mongo/redis/couchbase/elasticsearch)
-
 - `REDIS_DATABASE_URL` : URL connection string for Redis(, as session server if needed)
+
+- `AUTHTYPE` : Which type of authentication to use(auth0/appid/(blank))
 
 - Following all four values need to be set, if you use Auth0 as IDaaS:
 
@@ -58,6 +60,22 @@ This sample application can handle database maintenances. Even if DB would stop 
   - `AUTH0_CLIENT_SECRET` : Client Secret for Auth0
 
   - `AUTH0_DOMAIN` : Domain host name for Auth0
+
+- Following all seven values need to be set, if you use AppID as IDaaS:
+
+  - `APPID_REGION` : Callback URL after authentication with AppID
+
+  - `APPID_TENANTID` : Tenant ID for AppID
+
+  - `APPID_APIKEY` : API Key for AppID
+
+  - `APPID_SECRET` : API Secret for AppID
+
+  - `APPID_CLIENTID` : Client ID for AppID
+
+  - `APPID_REDIRECTURI` : Callback URL after authentication with AppID
+
+  - `APPID_OAUTHSERVERURL` : OAuth server name for AppID
 
 
 ## Running data services on docker

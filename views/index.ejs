@@ -108,10 +108,14 @@ function deleteItem( item_id ){
 <% if( user && user.id ){ %>
   <div class="dropdown" style="text-align: right;">
     <a href="#" title="<%= user.nickname %>" class="btn btn-xs btn-success btn-xs dropdown-toggle" data-toggle="dropdown" id="dropdownMenuLink" aria-haspopup="true" aria-expandable="false">
+  <% if( user.picture ){ %>
       <img src="<%= user.picture %>" alt="#" width="25px"/>
+  <% }else{ %>
+      <%= user.nickname %>
+  <% } %>
     </a>
     <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
-      <a class="dropdown-item" id="dropdown-calender" href="/auth0/logout">ログアウト</a>
+      <a class="dropdown-item" id="dropdown-calender" href="/<%= authtype %>/logout">ログアウト</a>
     </div>
   </div>
 <% } %>
