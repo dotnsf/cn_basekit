@@ -102,6 +102,8 @@ This sample application can handle database maintenances. Even if DB would stop 
 
   - `db2 => connecto to db`
 
+  - `db2 => create table if not exists items ( id varchar(50) not null primary key, name varchar(50) default '', price int default 0, created bigint default 0, updated bigint default 0 );`
+
 - MongoDB
 
   - `$ docker run -d --name mongo -p 27017:27017 -e MONGO_INITDB_ROOT_USERNAME=user -e MONGO_INITDB_ROOT_PASSWORD=pass -e MONGO_INITDB_DATABASE=db mongo`
@@ -126,7 +128,7 @@ This sample application can handle database maintenances. Even if DB would stop 
 
   - `$ docker container exec -it couchbase cbq --user user`
 
-  - `cbq> create primary index on \\`default\\`:\\`db\\`;`
+  - `cbq> create primary index on default:db`;`
 
     - Create index.
 
