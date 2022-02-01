@@ -170,38 +170,19 @@ api.deleteItem = function( id ){
 
 api.deleteItems = function(){
   return new Promise( ( resolve, reject ) => {
-    var url = database_url + '/_search?pretty';
+    var url = database_url + '/_doc/_delete_by_query?pretty';
     var option = {
       url: url,
-      method: 'GET',
+      method: 'POST',
       json: { query: { match_all: {} } },
       headers: db_headers
     };
     request( option, ( err, res, body ) => {
       if( err ){
+        console.log( err );
         resolve( { status: false, error: err } );
       }else{
-        var ids = [];
-        if( body && body.hits && body.hits.hits ){
-          body.hits.hits.forEach( function( item ){
-            ids.push( '{"index":{"_id":"' + item._source.id + '"}}\n' );  //. item._id
-          });
-        }
-
-        url = database_url + '/_bulk?pretty&pretty';
-        option = {
-          url: url,
-          method: 'DELETE',
-          json: { ids },
-          headers: db_headers
-        };
-        request( option, ( err, res, body ) => {
-          if( err ){
-            resolve( { status: false, error: err } );
-          }else{
-            resolve( { status: true } );
-          }
-        });
+        resolve( { status: true, result: body } );
       }
     });
   });
