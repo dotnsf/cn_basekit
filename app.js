@@ -6,7 +6,7 @@ var express = require( 'express' ),
 
 var settings = require( './settings' );
 
-var dbtype = 'DBTYPE' in process.env ? process.env.DBTYPE : settings.dbtype; 
+var dbtype = 'DBTYPE' in process.env ? process.env.DBTYPE : ( settings.dbtype ? settings.dbtype : "no" ); 
 var db = require( './api/db_' + dbtype );
 if( dbtype == 'redis' ){
   db = db.api;
