@@ -33,7 +33,7 @@ api.createItem = function( item, id ){
       if( err ){
         resolve( { status: false, error: err } );
       }else{
-        resolve( { status: true, doc: body } );
+        resolve( { status: true, result: body } );
       }
     });
   });
