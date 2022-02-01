@@ -36,7 +36,13 @@ function createItem(){
     url: '/api/db/item',
     data: data,
     success: function( result ){
+<% if( dbtype && dbtype == 'elasticsearch' ){ %>
+      setTimeout( function(){
+        location.href = '/';
+      }, 1000 );
+<% }else{ %>
       location.href = '/';
+<% } %>
     },
     error: function( e0, e1, e2 ){
       console.log( e0, e1, e2 );
@@ -50,7 +56,13 @@ function deleteItem( item_id ){
       type: 'DELETE',
       url: '/api/db/item/' + item_id,
       success: function( result ){
+<% if( dbtype && dbtype == 'elasticsearch' ){ %>
+        setTimeout( function(){
+          location.href = '/';
+        }, 1000 );
+<% }else{ %>
         location.href = '/';
+<% } %>
       },
       error: function( e0, e1, e2 ){
         console.log( e0, e1, e2 );

@@ -107,14 +107,14 @@ app.get( '/', async function( req, res ){
       var user = strategy ? req.user : null
       var result = await db.readItems();
       if( result.status ){
-        res.render( 'index', { items: result.results, user: user } );
+        res.render( 'index', { items: result.results, dbtype: dbtype, user: user } );
       }else{
-        res.render( 'index', { items: [], user: user } );
+        res.render( 'index', { items: [], dbtype: dbtype, user: user } );
       }
     }
   }catch( e ){
     console.log( e );
-    res.render( 'index', { items: [], user: null } );
+    res.render( 'index', { items: [], dbtype: dbtype, user: null } );
   }finally{
     if( conn ){
       conn.release();
