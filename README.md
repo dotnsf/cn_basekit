@@ -29,7 +29,7 @@ This sample application can handle database maintenances. Even if DB would stop 
 
 ## Environment values
 
-- One of follow three value need to be set:
+- One of following values ( or `REDIS_DATABASE_URL` ) need to be set:
 
   - `COUCHDB_DATABASE_URL` : URL connection string for CouchDB
 
@@ -43,13 +43,13 @@ This sample application can handle database maintenances. Even if DB would stop 
 
   - `COUCHBASE_DATABASE_URL` : URL connection string for CouchBase
 
-  - `ELASTICSEARCH_DATABASE_URL` : URL connection string for ElasticSearch(beta)
+  - `ELASTICSEARCH_DATABASE_URL` : URL connection string for ElasticSearch
 
 - `DBTYPE` : Which type of DB to use(couchdb/mysql/postgres/db2/mongo/redis/couchbase/elasticsearch)
 
-- `REDIS_DATABASE_URL` : URL connection string for Redis(, if needed)
+- `REDIS_DATABASE_URL` : URL connection string for Redis(, as session server if needed)
 
-- Following all four values need to be set, if you use IDaaS with Auth0
+- Following all four values need to be set, if you use Auth0 as IDaaS:
 
   - `AUTH0_CALLBACK_URL` : Callback URL after authentication with Auth0
 
