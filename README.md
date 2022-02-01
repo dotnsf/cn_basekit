@@ -136,6 +136,14 @@ This sample application can handle database maintenances. Even if DB would stop 
 
   - `$ docker run -d --name elasticsearch -p 9200:9200 -p 9300:9300 -e discovery.type=single-node docker.elastic.co/elasticsearch/elasticsearch:7.13.2`
 
+  - `$ docker container exec -it elasticsearch bash`
+
+  - `# bin/elasticsearch-plugin install analysis-kuromoji`
+
+  - `# exit`
+
+  - `$ docker restart elasticsearch`
+
   - `$ curl -X PUT "http://localhost:9200/db?pretty&pretty"`
 
     - index(db) 作成
