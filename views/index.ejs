@@ -24,6 +24,37 @@ html, body{
 </style>
 <script>
 $(function(){
+  $('#queryForm').submit( function(){
+    var key = $('#key').val();
+    if( key ){
+      $('#tbody').html( '' );
+      $.ajax({
+        type: 'POST',
+        url: '/api/db/items/' + key,
+        data: data,
+        success: function( result ){
+          if( result && result.status ){
+            for( var i = 0; i < result.results.length; i ++ ){
+              var tr = '<tr>'
+                + '<td>' + i + '</td>'
+                + '<td>' + result.results[i].name + '</td>'
+                + '<td>' + result.results[i].price + '</td>'
+                + '<td>'
+                + '<button class="btn btn-danger btn-xs" onClick="deleteItem(\'' + result.results[i].id + '\');">DELETE</button>'
+                + '</td>'
+                + '</tr>';
+              $('#tobdy').append( tr );
+            }
+          }
+        },
+        error: function( e0, e1, e2 ){
+          console.log( e0, e1, e2 );
+        }
+      });
+    }
+
+    return false;
+  });
 });
 
 function createItem(){
@@ -86,11 +117,14 @@ function deleteItem( item_id ){
 
 <div class="container">
   <h1>items</h1>
+  <form id="queryForm">
+    <input id="key" type="text" placeholder="keyword" value=""/>
+  </form>
   <table class="table table-bordered">
     <thead>
       <tr><th>#</th><th>name</th><th>price</th><th>actions</th></tr>
     </thead>
-    <tbody>
+    <tbody id="tbody">
 <% for( var i = 0; i < items.length; i ++ ){ %>
       <tr>
         <td><%= i %></td>
