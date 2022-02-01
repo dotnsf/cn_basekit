@@ -24,14 +24,15 @@ html, body{
 </style>
 <script>
 $(function(){
-  $('#queryForm').submit( function(){
+  $('#queryForm').submit( function( evt ){
+    evt.preventDefault();
+
     var key = $('#key').val();
     if( key ){
       $('#tbody').html( '' );
       $.ajax({
-        type: 'POST',
+        type: 'GET',
         url: '/api/db/items/' + key,
-        data: data,
         success: function( result ){
           if( result && result.status ){
             for( var i = 0; i < result.results.length; i ++ ){
@@ -43,7 +44,7 @@ $(function(){
                 + '<button class="btn btn-danger btn-xs" onClick="deleteItem(\'' + result.results[i].id + '\');">DELETE</button>'
                 + '</td>'
                 + '</tr>';
-              $('#tobdy').append( tr );
+              $('#tbody').append( tr );
             }
           }
         },
@@ -118,7 +119,7 @@ function deleteItem( item_id ){
 <div class="container">
   <h1>items</h1>
   <form id="queryForm">
-    <input id="key" type="text" placeholder="keyword" value=""/>
+    <input id="key" type="text" class="form-control" placeholder="keyword" value=""/>
   </form>
   <table class="table table-bordered">
     <thead>
