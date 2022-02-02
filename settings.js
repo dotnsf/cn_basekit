@@ -10,7 +10,7 @@ exports.couchdb_database_url = 'http://user:pass@localhost:5984/db';
 exports.dbtype = '';
 
 //. Redis
-exports.redis_database_url = 'redis://localhost:6379';
+exports.redis_database_url = ''; //'redis://localhost:6379';
 
 //. Auth0
 exports.auth0_callback_url = 'http://localhost:8080/auth0/callback';
