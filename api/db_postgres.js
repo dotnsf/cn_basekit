@@ -94,7 +94,7 @@ api.createItem = async function( item ){
 };
 
 api.createItems = function( items ){
-  return new Promise( ( resolve, reject ) => {
+  return new Promise( async ( resolve, reject ) => {
     if( pg ){
       conn = await pg.connect();
       if( conn ){
@@ -140,36 +140,6 @@ api.createItems = function( items ){
     }else{
       resolve( { status: false, error: 'db not ready.' } );
     }
-    var num = 0;
-    var count = 0;
-    for( var i = 0; i < items.length; i ++ ){
-      var item = items[i];
-      if( !item.id ){
-        item.id = uuidv1();
-      }
-
-      if( db[item.id] ){
-      }else{
-        var t = ( new Date() ).getTime();
-        item.created = t;
-        item.updated = t;
-
-        redisClient.set( item.id, JSON.stringify( item ), function( err ){
-          num ++;
-          if( err ){
-            console.log( err );
-          }else{
-            count ++;
-          }
-
-          if( num == items.length ){
-            resolve( { status: true, count: count } );
-          }
-        });
-      }
-    }
-
-    resolve( { status: true, count: count } );
   });
 };
 

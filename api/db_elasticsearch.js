@@ -53,11 +53,13 @@ api.createItems = function( items ){
         data += JSON.stringify( item ) + "\n";
       }
     });
+    data += "\n";
 
     var option = {
       url: database_url + '/_bulk?pretty&pretty',
       method: 'POST',
-      data: data,
+      encoding: null,
+      body: data,
       headers: { 'Content-Type': 'application/x-ndjson' }
     };
     request( option, ( err, res, body ) => {

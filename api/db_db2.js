@@ -366,8 +366,14 @@ api.deleteItems = async function(){
             conn.query( sql, [], function( err, result ){
               if( err ){
                 conn.close();
-                console.log( err );
-                resolve( { status: false, error: err } );
+                if( err.state == '01504' ){
+                  //. https://knowledgebase.progress.com/articles/Article/000043103
+                  console.log( result );
+                  resolve( { status: true, result: result } );
+                }else{
+                  console.log( err );
+                  resolve( { status: false, error: err } );
+                }
               }else{
                 conn.close();
                 resolve( { status: true, result: result } );

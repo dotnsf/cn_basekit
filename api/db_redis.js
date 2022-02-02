@@ -74,28 +74,23 @@ api.createItems = function( items ){
         item.id = uuidv1();
       }
 
-      if( db[item.id] ){
-      }else{
-        var t = ( new Date() ).getTime();
-        item.created = t;
-        item.updated = t;
+      var t = ( new Date() ).getTime();
+      item.created = t;
+      item.updated = t;
 
-        redisClient.set( item.id, JSON.stringify( item ), function( err ){
-          num ++;
-          if( err ){
-            console.log( err );
-          }else{
-            count ++;
-          }
+      redisClient.set( item.id, JSON.stringify( item ), function( err ){
+        num ++;
+        if( err ){
+          console.log( err );
+        }else{
+          count ++;
+        }
 
-          if( num == items.length ){
-            resolve( { status: true, count: count } );
-          }
-        });
-      }
+        if( num == items.length ){
+          resolve( { status: true, count: count } );
+        }
+      });
     }
-
-    resolve( { status: true, count: count } );
   });
 };
 
