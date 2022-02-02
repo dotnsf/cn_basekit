@@ -25,6 +25,23 @@ paths:
           description: 成功
         '400':
           description: エラー
+    post:
+      tags:
+        - item
+      summary: バルクインサート
+      description: バルクインサート
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          in: body
+          schema:
+            $ref: '#/definitions/ItemsRequest'
+      responses:
+        '200':
+          description: 成功
+        '400':
+          description: エラー
     delete:
       tags:
         - item
@@ -142,3 +159,17 @@ definitions:
       price:
         type: integer
         description: 価格
+  ItemsRequest:
+    type: array
+    items:
+      type: object
+      properties:
+        id:
+          type: string
+          description: id
+        name:
+          type: string
+          description: 名前
+        price:
+          type: integer
+          description: 価格

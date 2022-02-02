@@ -29,7 +29,7 @@ This sample application can handle database maintenances. Even if DB would stop 
 
 ## Environment values
 
-- `DBTYPE` : Which type of DB to use(couchdb/mysql/postgres/db2/mongo/redis/couchbase/elasticsearch)
+- `DBTYPE` : Which type of DB to use(couchdb/mysql/postgres/db2/mongo/redis/couchbase/elasticsearch/(blank))
 
 - One of following values ( or `REDIS_DATABASE_URL` ) need to be set:
 
@@ -172,6 +172,7 @@ This sample application can handle database maintenances. Even if DB would stop 
 - Redis
 
   - `$ docker run --name redis -d -p 6379:6379 redis`
+
 
 ## Licensing
 

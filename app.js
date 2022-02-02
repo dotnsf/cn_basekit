@@ -150,7 +150,7 @@ app.get( '/', async function( req, res ){
     }else{
       var user = authtype ? req.user : null
       //console.log( { user } );  //. id, nickname & picture
-      if( user.sub ){
+      if( user && user.sub ){
         user.id = user.sub;
         user.nickname = user.name;
         user.picture = '';

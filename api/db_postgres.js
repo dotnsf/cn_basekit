@@ -93,6 +93,86 @@ api.createItem = async function( item ){
   });
 };
 
+api.createItems = function( items ){
+  return new Promise( ( resolve, reject ) => {
+    if( pg ){
+      conn = await pg.connect();
+      if( conn ){
+        try{
+          var num = 0;
+          var count = 0;
+
+          var sql = 'insert into items( id, name, price, created, updated ) values ( $1, $2, $3, $4, $5 )';
+          for( var i = 0; i < items.length; i ++ ){
+            var item = items[i];
+            if( !item.id ){
+              item.id = uuidv1();
+            }
+            var t = ( new Date() ).getTime();
+            item.created = t;
+            item.updated = t;
+            //console.log( item );
+            var query = { text: sql, values: [ item.id, item.name, item.price, item.created, item.updated ] };
+            conn.query( query, function( err, result ){
+              num ++;
+              if( err ){
+                console.log( err );
+              }else{
+                count ++;
+              }
+
+              if( num == items.length ){
+                resolve( { status: true, count: count } );
+              }
+            });
+          }
+        }catch( e ){
+          console.log( e );
+          resolve( { status: false, error: err } );
+        }finally{
+          if( conn ){
+            conn.release();
+          }
+        }
+      }else{
+        resolve( { status: false, error: 'no connection.' } );
+      }
+    }else{
+      resolve( { status: false, error: 'db not ready.' } );
+    }
+    var num = 0;
+    var count = 0;
+    for( var i = 0; i < items.length; i ++ ){
+      var item = items[i];
+      if( !item.id ){
+        item.id = uuidv1();
+      }
+
+      if( db[item.id] ){
+      }else{
+        var t = ( new Date() ).getTime();
+        item.created = t;
+        item.updated = t;
+
+        redisClient.set( item.id, JSON.stringify( item ), function( err ){
+          num ++;
+          if( err ){
+            console.log( err );
+          }else{
+            count ++;
+          }
+
+          if( num == items.length ){
+            resolve( { status: true, count: count } );
+          }
+        });
+      }
+    }
+
+    resolve( { status: true, count: count } );
+  });
+};
+
 //. Read
 api.readItem = async function( item_id ){
   return new Promise( async ( resolve, reject ) => {
@@ -325,6 +405,24 @@ api.post( '/item', async function( req, res ){
   var item = req.body;
   item.price = parseInt( item.price );
   api.createItem( item ).then( function( result ){
+    res.status( result.status ? 200 : 400 );
+    res.write( JSON.stringify( result, null, 2 ) );
+    res.end();
+  });
+});
+
+api.post( '/items', async function( req, res ){
+  res.contentType( 'application/json; charset=utf-8' );
+
+  var items = req.body;
+  items.forEach( function( item ){
+    item.price = parseInt( item.price );
+    if( !item.id ){
+      item.id = uuidv1();
+    }
+  });
+
+  api.createItems( items ).then( function( result ){
     res.status( result.status ? 200 : 400 );
     res.write( JSON.stringify( result, null, 2 ) );
     res.end();

@@ -38,6 +38,30 @@ api.createItem = function( item ){
   });
 };
 
+api.createItems = function( items ){
+  return new Promise( ( resolve, reject ) => {
+    var count = 0;
+    for( var i = 0; i < items.length; i ++ ){
+      var item = items[i];
+      if( !item.id ){
+        item.id = uuidv1();
+      }
+
+      if( db[item.id] ){
+      }else{
+        var t = ( new Date() ).getTime();
+        item.created = t;
+        item.updated = t;
+
+        db[item.id] = item;
+        count ++;
+      }
+    }
+
+    resolve( { status: true, count: count } );
+  });
+};
+
 api.readItem = function( item_id ){
   return new Promise( async ( resolve, reject ) => {
     if( !item_id ){
@@ -73,9 +97,9 @@ api.readItems = function( limit, start ){
 api.queryItems = function( key, limit, start ){
   return new Promise( async ( resolve, reject ) => {
     var items = [];
-    Object.keys( db ).forEach( function( key ){
-      if( db[key].name.indexOf( key ) > -1 ){
-        items.push( db[key] );
+    Object.keys( db ).forEach( function( id ){
+      if( db[id].name.indexOf( key ) > -1 ){
+        items.push( db[id] );
       }
     });
 
@@ -141,6 +165,24 @@ api.post( '/item', async function( req, res ){
   }
 
   api.createItem( item ).then( function( result ){
+    res.status( result.status ? 200 : 400 );
+    res.write( JSON.stringify( result, null, 2 ) );
+    res.end();
+  });
+});
+
+api.post( '/items', async function( req, res ){
+  res.contentType( 'application/json; charset=utf-8' );
+
+  var items = req.body;
+  items.forEach( function( item ){
+    item.price = parseInt( item.price );
+    if( !item.id ){
+      item.id = uuidv1();
+    }
+  });
+
+  api.createItems( items ).then( function( result ){
     res.status( result.status ? 200 : 400 );
     res.write( JSON.stringify( result, null, 2 ) );
     res.end();

@@ -70,6 +70,40 @@ api.createItem = function( item ){
   });
 };
 
+api.createItems = function( items ){
+  return new Promise( ( resolve, reject ) => {
+    if( collection ){
+      var num = 0;
+      var count = 0;
+
+      var t = ( new Date() ).getTime();
+      for( var i = 0; i < items.length; i ++ ){
+        if( !items[i].id ){
+          items[i].id = uuidv1();
+        }
+        items[i].created = t;
+        items[i].updated = t;
+
+        //collection.upsert( item.id, item, function( err, result ){
+        collection.insert( items[i].id, items[i], function( err, result ){
+          num ++;
+          if( err ){
+            console.log( err );
+          }else{
+            count ++;
+          }
+
+          if( num == items.length ){
+            resolve( { status: true, count: count } );
+          }
+        });
+      }
+    }else{
+      resolve( { status: false, error: 'no collection' } );
+    }
+  });
+};
+
 api.readItem = function( item_id ){
   return new Promise( async ( resolve, reject ) => {
     if( collection ){
@@ -235,10 +269,26 @@ api.post( '/item', async function( req, res ){
   if( !item.id ){
     item.id = uuidv1();
   }
-  var t = ( new Date() ).getTime();
-  item.created = t;
-  item.updated = t;
+
   api.createItem( item ).then( function( result ){
+    res.status( result.status ? 200 : 400 );
+    res.write( JSON.stringify( result, null, 2 ) );
+    res.end();
+  });
+});
+
+api.post( '/items', async function( req, res ){
+  res.contentType( 'application/json; charset=utf-8' );
+
+  var items = req.body;
+  items.forEach( function( item ){
+    item.price = parseInt( item.price );
+    if( !item.id ){
+      item.id = uuidv1();
+    }
+  });
+
+  api.createItems( items ).then( function( result ){
     res.status( result.status ? 200 : 400 );
     res.write( JSON.stringify( result, null, 2 ) );
     res.end();

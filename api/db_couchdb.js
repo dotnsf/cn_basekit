@@ -39,10 +39,42 @@ api.use( express.Router() );
 api.createItem = function( item, id ){
   return new Promise( ( resolve, reject ) => {
     if( db ){
+      var t = ( new Date() ).getTime();
+      item.created = t;
+      item.updated = t;
+
       var option = {
         url: database_url + '/' + id,
         method: 'PUT',
         json: item,
+        headers: db_headers
+      };
+      request( option, ( err, res, body ) => {
+        if( err ){
+          resolve( { status: false, error: err } );
+        }else{
+          resolve( { status: true, result: body } );
+        }
+      });
+    }else{
+      resolve( { status: false, error: 'no db' } );
+    }
+  });
+};
+
+api.createItems = function( items ){
+  return new Promise( ( resolve, reject ) => {
+    if( db ){
+      var t = ( new Date() ).getTime();
+      for( var i = 0; i < items.length; i ++ ){
+        items[i].created = t;
+        items[i].updated = t;
+      }
+
+      var option = {
+        url: database_url + '/_bulk_docs',
+        method: 'POST',
+        json: { docs: items },
         headers: db_headers
       };
       request( option, ( err, res, body ) => {
@@ -295,10 +327,26 @@ api.post( '/item', async function( req, res ){
     item.id = uuidv1();
     item._id = item.id;
   }
-  var t = ( new Date() ).getTime();
-  item.created = t;
-  item.updated = t;
+
   api.createItem( item, item.id ).then( function( result ){
+    res.status( result.status ? 200 : 400 );
+    res.write( JSON.stringify( result, null, 2 ) );
+    res.end();
+  });
+});
+
+api.post( '/items', async function( req, res ){
+  res.contentType( 'application/json; charset=utf-8' );
+
+  var items = req.body;
+  items.forEach( function( item ){
+    item.price = parseInt( item.price );
+    if( !item.id ){
+      item.id = uuidv1();
+    }
+  });
+
+  api.createItems( items ).then( function( result ){
     res.status( result.status ? 200 : 400 );
     res.write( JSON.stringify( result, null, 2 ) );
     res.end();

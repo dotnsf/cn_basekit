@@ -11,7 +11,12 @@ var settings = require( '../settings' );
 //. env values
 var database_url = 'ELASTICSEARCH_DATABASE_URL' in process.env ? process.env.ELASTICSEARCH_DATABASE_URL : settings.elasticsearch_database_url; 
 
+var index = '';
 var db_headers = { 'Content-Type': 'application/json' };
+var tmp = database_url.split( '/' );
+if( tmp.length > 0 ){
+  index = tmp[tmp.length-1];
+}
 
 //. POST メソッドで JSON データを受け取れるようにする
 api.use( multer( { dest: '../tmp/' } ).single( 'image' ) );
@@ -28,6 +33,32 @@ api.createItem = function( item, id ){
       method: 'PUT',
       json: item,
       headers: db_headers
+    };
+    request( option, ( err, res, body ) => {
+      if( err ){
+        resolve( { status: false, error: err } );
+      }else{
+        resolve( { status: true, result: body } );
+      }
+    });
+  });
+};
+
+api.createItems = function( items ){
+  return new Promise( ( resolve, reject ) => {
+    var data = '';
+    items.forEach( function( item ){
+      if( item.id ){
+        data += JSON.stringify( { create: { _index: index, _id: item.id } } ) + "\n";
+        data += JSON.stringify( item ) + "\n";
+      }
+    });
+
+    var option = {
+      url: database_url + '/_bulk?pretty&pretty',
+      method: 'POST',
+      data: data,
+      headers: { 'Content-Type': 'application/x-ndjson' }
     };
     request( option, ( err, res, body ) => {
       if( err ){
@@ -197,15 +228,32 @@ api.post( '/item', async function( req, res ){
   if( !item.id ){
     item.id = uuidv1();
   }
-  var t = ( new Date() ).getTime();
-  item.created = t;
-  item.updated = t;
+
   api.createItem( item, item.id ).then( function( result ){
     res.status( result.status ? 200 : 400 );
     res.write( JSON.stringify( result, null, 2 ) );
     res.end();
   });
 });
+
+api.post( '/items', async function( req, res ){
+  res.contentType( 'application/json; charset=utf-8' );
+
+  var items = req.body;
+  items.forEach( function( item ){
+    item.price = parseInt( item.price );
+    if( !item.id ){
+      item.id = uuidv1();
+    }
+  });
+
+  api.createItems( items ).then( function( result ){
+    res.status( result.status ? 200 : 400 );
+    res.write( JSON.stringify( result, null, 2 ) );
+    res.end();
+  });
+});
+
 
 api.get( '/item/:id', async function( req, res ){
   res.contentType( 'application/json; charset=utf-8' );

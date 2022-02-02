@@ -81,6 +81,55 @@ api.createItem = async function( item ){
   });
 };
 
+api.createItems = async function( items ){
+  return new Promise( async ( resolve, reject ) => {
+    if( mysql ){
+      mysql.getConnection( function( err, conn ){
+        if( err ){
+          console.log( err );
+          resolve( { status: false, error: err } );
+        }else{
+          try{
+            var num = 0;
+            var count = 0;
+
+            var sql = 'insert into items set ?';
+            for( var i = 0; i < items.length; i ++ ){
+              var item = items[i];
+              if( !item.id ){
+                item.id = uuidv1();
+              }
+              var t = ( new Date() ).getTime();
+              item.created = t;
+              item.updated = t;
+              conn.query( sql, item, function( err, result ){
+                num ++;
+                if( err ){
+                  console.log( err );
+                }else{
+                  count ++;
+                }
+
+                if( num == items.length ){
+                  resolve( { status: true, count: count } );
+                }
+              });
+            }
+
+          }catch( e ){
+            console.log( e );
+            resolve( { status: false, error: e } );
+          }finally{
+            conn.release();
+          }
+        }
+      });
+    }else{
+      resolve( { status: false, error: 'db not ready.' } );
+    }
+  });
+};
+
 //. Read
 api.readItem = async function( item_id ){
   return new Promise( async ( resolve, reject ) => {
@@ -312,6 +361,24 @@ api.post( '/item', async function( req, res ){
   var item = req.body;
   item.price = parseInt( item.price );
   api.createItem( item ).then( function( result ){
+    res.status( result.status ? 200 : 400 );
+    res.write( JSON.stringify( result, null, 2 ) );
+    res.end();
+  });
+});
+
+api.post( '/items', async function( req, res ){
+  res.contentType( 'application/json; charset=utf-8' );
+
+  var items = req.body;
+  items.forEach( function( item ){
+    item.price = parseInt( item.price );
+    if( !item.id ){
+      item.id = uuidv1();
+    }
+  });
+
+  api.createItems( items ).then( function( result ){
     res.status( result.status ? 200 : 400 );
     res.write( JSON.stringify( result, null, 2 ) );
     res.end();
