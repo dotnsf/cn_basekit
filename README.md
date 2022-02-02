@@ -120,7 +120,7 @@ This sample application can handle database maintenances. Even if DB would stop 
 
   - `db2 => connecto to db`
 
-  - `db2 => create table if not exists items ( id varchar(50) not null primary key, name varchar(50) default '', price int default 0, created bigint default 0, updated bigint default 0 );`
+  - `db2 => create table if not exists items ( "id" varchar(50) not null primary key, "name" varchar(50) default '', "price" int default 0, "created" bigint default 0, "updated" bigint default 0 );`
 
 - MongoDB
 
