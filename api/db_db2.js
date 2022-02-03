@@ -366,6 +366,7 @@ api.deleteItems = async function(){
             conn.query( sql, [], function( err, result ){
               if( err ){
                 conn.close();
+                /*
                 if( err.state == '01504' ){
                   //. https://knowledgebase.progress.com/articles/Article/000043103
                   console.log( result );
@@ -373,6 +374,14 @@ api.deleteItems = async function(){
                 }else{
                   console.log( err );
                   resolve( { status: false, error: err } );
+                }
+                */
+                //. https://stackoverflow.com/questions/70964021/warning-is-treated-as-error-when-executing-sql-delete-from-tablename-i
+                if( err.sqlcode < 0 ){
+                  console.log( err );
+                  resolve( { status: false, error: err } );
+                }else{
+                  resolve( { status: true, result: result } );
                 }
               }else{
                 conn.close();
