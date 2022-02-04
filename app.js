@@ -48,8 +48,7 @@ var sess = {
   secret: 'cn_basekit',
   cookie: {
     path: '/',
-    //maxAge: (7 * 24 * 60 * 60 * 1000)
-    maxAge: (1 * 60 * 1000)
+    maxAge: (7 * 24 * 60 * 60 * 1000)
   },
   resave: false,
   saveUninitialized: false //true
