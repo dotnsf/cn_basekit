@@ -47,6 +47,8 @@ This sample application can handle database maintenances. Even if DB would stop 
 
   - `ELASTICSEARCH_DATABASE_URL` : URL connection string for ElasticSearch
 
+  - `MEMCACHED_DATABASE_URL` : URL connection string for Memcached
+
 - `REDIS_DATABASE_URL` : URL connection string for Redis(, as session server if needed)
 
 - `AUTHTYPE` : Which type of authentication to use(auth0/appid/(blank))

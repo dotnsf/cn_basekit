@@ -6,6 +6,7 @@ exports.mongo_database_url = 'mongodb://user:pass@localhost:27017/local?authSour
 exports.couchbase_database_url = 'couchbase://user:password@localhost/db';
 exports.elasticsearch_database_url = 'http://localhost:9200/db';
 exports.couchdb_database_url = 'http://user:pass@localhost:5984/db';
+exports.memcached_database_url = 'localhost:11211';
 
 exports.dbtype = '';
 
