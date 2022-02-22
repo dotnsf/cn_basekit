@@ -111,7 +111,7 @@ api.readItems = function( limit, start ){
       //. https://darkcoding.net/software/memcached-list-all-keys/
       //resolve( { status: false, error: 'not implemented.' } );
       memcached.items( function( err, results ){
-        console.log( err, results );
+        console.log( err, results );  //. 永久にここに来ない。なぜ？？ items でなく stats でも同様。telnet で接続して `stats items` を実行すると動くのに・・
         if( err ){
           resolve( { status: false, error: err } );
         }else{
@@ -119,6 +119,7 @@ api.readItems = function( limit, start ){
         }
       });
     }else{
+    console.log( 'readItems: -1' );
       resolve( { status: false, error: 'no db' } );
     }
   });
