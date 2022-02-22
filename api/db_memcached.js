@@ -12,6 +12,8 @@ var settings = require( '../settings' );
 var database_url = 'MEMCACHED_DATABASE_URL' in process.env ? process.env.MEMCACHED_DATABASE_URL : settings.memcached_database_url; 
 
 var Memcached = require( 'memcached' );
+var memcached = new Memcached( database_url );  //. こっちだと動くっぽい・・・・
+/*
 var memcached = new Memcached();
 memcached.connect( database_url, function( err, conn ){
   if( err ){
@@ -19,6 +21,7 @@ memcached.connect( database_url, function( err, conn ){
   }else{
   }
 });
+*/
 
 //. POST メソッドで JSON データを受け取れるようにする
 api.use( multer( { dest: '../tmp/' } ).single( 'image' ) );
@@ -36,12 +39,14 @@ api.createItem = function( item ){
       var t = ( new Date() ).getTime();
       item.created = t;
       item.updated = t;
+      console.log( 'createItem: ', item );
 
-      memcached.add( item.id, item, function( err, result ){
+      memcached.set( item.id, item, 0, function( err, result ){
         if( err ){
           console.log( err );
           resolve( { status: false, error: err } );
         }else{
+          console.log( { result } );
           resolve( { status: true, result: result } );
         }
       });
@@ -64,7 +69,7 @@ api.createItems= function( items ){
         items[i].created = t;
         items[i].updated = t;
 
-        memcached.add( items, function( err, result ){
+        memcached.set( items[i].id, items[i], 0, function( err, result ){
           if( err ){
             console.log( err );
           }else{
@@ -110,8 +115,13 @@ api.readItems = function( limit, start ){
       //. No way ??
       //. https://darkcoding.net/software/memcached-list-all-keys/
       //resolve( { status: false, error: 'not implemented.' } );
+      //memcached.items( function( err, results ){
       memcached.items( function( err, results ){
-        console.log( err, results );  //. 永久にここに来ない。なぜ？？ items でなく stats でも同様。telnet で接続して `stats items` を実行すると動くのに・・
+        console.log( err, results );
+        /* results = [
+          { '6': { number: 1, number_hot: 1, ... }, server: '' }
+        ];
+        */
         if( err ){
           resolve( { status: false, error: err } );
         }else{
