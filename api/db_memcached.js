@@ -125,7 +125,36 @@ api.readItems = function( limit, start ){
         if( err ){
           resolve( { status: false, error: err } );
         }else{
-          resolve( { status: true, results: results } );
+          var cnt = 0;
+          results.forEach( function( result ){
+            var server = '';
+            var slabid = '';
+            var number = '';
+            Object.keys( result ).forEach( function( key ){
+              if( key == 'server' ){
+                server = result[key];
+              }else{
+                slabid = key;
+                number = result[key].number;
+              }
+            });
+
+            console.log( 'cachedump', server, slabid, number );
+            if( server && slabid && number ){
+              memcached.cachedump( server, slabid, number, function( err, result ){
+                console.log( err, result );
+                cnt ++;
+                if( cnt == results.length ){
+                  resolve( { status: true, results: results } );
+                }
+              });
+            }else{
+              cnt ++;
+              if( cnt == results.length ){
+                resolve( { status: true, results: results } );
+              }
+            }
+          });
         }
       });
     }else{
