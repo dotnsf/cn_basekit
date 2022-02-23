@@ -205,10 +205,15 @@ api.getAll = async function(){
               if( slabid != 'server' ){
                 memcached.cachedump( result.server, parseInt( slabid ), result[slabid].number, function( err, key_results ){
                   var keys = [];
-                  key_results.forEach( function( key_result ){
-                    var key = key_result['key'];
+                  if( key_results.length ){
+                    key_results.forEach( function( key_result ){
+                      var key = key_result['key'];
+                      keys.push( key );
+                    });
+                  }else{
+                    var key = key_results['key'];
                     keys.push( key );
-                  });
+                  }
 
                   memcached.getMulti( keys, function( err, data ){
                     if( !err ){
