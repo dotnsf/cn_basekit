@@ -175,6 +175,24 @@ api.deleteItem = function( item_id ){
 api.deleteItems = async function(){
   return new Promise( async ( resolve, reject ) => {
     if( memcached ){
+      var r = await api.getAll();
+      if( r && r.status ){
+        var cnt = 0;
+        r.results.forEach( function( item ){
+          memcached.del( item.id, function( err, result ){
+            if( err ){
+              console.log( err );
+            }
+
+            cnt ++;
+            if( cnt == r.results.length ){
+              resolve( { status: true } );
+            }
+          });
+        });
+      }else{
+        resolve( { status: false, error: e.error } );
+      }
       memcached.flush( function( err, result ){
         if( err ){
           console.log( err );
@@ -201,35 +219,40 @@ api.getAll = async function(){
           var cnt = 0;
           var values = [];
           results.forEach( function( result ){
-            Object.keys( result ).forEach( function( slabid ){
-              if( slabid != 'server' ){
-                memcached.cachedump( result.server, parseInt( slabid ), result[slabid].number, function( err, key_results ){
-                  var keys = [];
-                  if( key_results.length ){
-                    key_results.forEach( function( key_result ){
-                      var key = key_result['key'];
-                      keys.push( key );
-                    });
-                  }else{
-                    var key = key_results['key'];
-                    keys.push( key );
-                  }
-
-                  memcached.getMulti( keys, function( err, data ){
-                    if( !err ){
-                      keys.forEach( function( key ){
-                        values.push( data[key] );
+            var obj_keys = Object.keys( result );
+            if( obj_keys.length == 0 ){
+              resolve( { status: true, results: [] } );
+            }else{
+              Object.keys( result ).forEach( function( slabid ){
+                if( slabid != 'server' ){
+                  memcached.cachedump( result.server, parseInt( slabid ), result[slabid].number, function( err, key_results ){
+                    var keys = [];
+                    if( 'length' in key_results ){
+                      key_results.forEach( function( key_result ){
+                        var key = key_result['key'];
+                        keys.push( key );
                       });
+                    }else{
+                      var key = key_results['key'];
+                      keys.push( key );
                     }
+  
+                    memcached.getMulti( keys, function( err, data ){
+                      if( !err ){
+                        keys.forEach( function( key ){
+                          values.push( data[key] );
+                        });
+                      }
 
-                    cnt ++;
-                    if( cnt == results.length ){
-                      resolve( { status: true, results: values } );
-                    }
+                      cnt ++;
+                      if( cnt == results.length ){
+                        resolve( { status: true, results: values } );
+                      }
+                    });
                   });
-                });
-              }
-            });
+                }
+              });
+            }
           });
         }
       });
