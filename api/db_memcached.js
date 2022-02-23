@@ -13,15 +13,6 @@ var database_url = 'MEMCACHED_DATABASE_URL' in process.env ? process.env.MEMCACH
 
 var Memcached = require( 'memcached' );
 var memcached = new Memcached( database_url );  //. こっちだと動くっぽい・・・・
-/*
-var memcached = new Memcached();
-memcached.connect( database_url, function( err, conn ){
-  if( err ){
-    console.log( err );
-  }else{
-  }
-});
-*/
 
 //. POST メソッドで JSON データを受け取れるようにする
 api.use( multer( { dest: '../tmp/' } ).single( 'image' ) );
@@ -39,14 +30,12 @@ api.createItem = function( item ){
       var t = ( new Date() ).getTime();
       item.created = t;
       item.updated = t;
-      console.log( 'createItem: ', item );
 
       memcached.set( item.id, item, 0, function( err, result ){
         if( err ){
           console.log( err );
           resolve( { status: false, error: err } );
         }else{
-          console.log( { result } );
           resolve( { status: true, result: result } );
         }
       });
@@ -73,7 +62,6 @@ api.createItems= function( items ){
           if( err ){
             console.log( err );
           }else{
-            //console.log( result );
             results.push( result );
           }
 
@@ -112,53 +100,13 @@ api.readItem = function( item_id ){
 api.readItems = function( limit, start ){
   return new Promise( async ( resolve, reject ) => {
     if( memcached ){
-      //. No way ??
-      //. https://darkcoding.net/software/memcached-list-all-keys/
-      //resolve( { status: false, error: 'not implemented.' } );
-      //memcached.items( function( err, results ){
-      memcached.items( function( err, results ){
-        console.log( err, results );
-        /* results = [
-          { '6': { number: 1, number_hot: 1, ... }, server: '' }
-        ];
-        */
-        if( err ){
-          resolve( { status: false, error: err } );
-        }else{
-          var cnt = 0;
-          results.forEach( function( result ){
-            var server = '';
-            var slabid = '';
-            var number = '';
-            Object.keys( result ).forEach( function( key ){
-              if( key == 'server' ){
-                server = result[key];
-              }else{
-                slabid = key;
-                number = result[key].number;
-              }
-            });
-
-            console.log( 'cachedump', server, slabid, number );
-            if( server && slabid && number ){
-              memcached.cachedump( server, slabid, number, function( err, result ){
-                console.log( err, result );
-                cnt ++;
-                if( cnt == results.length ){
-                  resolve( { status: true, results: results } );
-                }
-              });
-            }else{
-              cnt ++;
-              if( cnt == results.length ){
-                resolve( { status: true, results: results } );
-              }
-            }
-          });
-        }
-      });
+      var r = await api.getAll();
+      if( r && r.status ){
+        resolve( { status: true, results: r.results } );
+      }else{
+        resolve( { status: false, error: r.error } );
+      }
     }else{
-    console.log( 'readItems: -1' );
       resolve( { status: false, error: 'no db' } );
     }
   });
@@ -167,8 +115,19 @@ api.readItems = function( limit, start ){
 api.queryItems = function( key, limit, start ){
   return new Promise( async ( resolve, reject ) => {
     if( memcached ){
-      //. How ??
-      resolve( { status: false, error: 'not implemented.' } );
+      var r = await api.getAll();
+      if( r && r.status ){
+        var results = [];
+        r.results.forEach( function( result ){
+          if( result.name.indexOf( key ) > -1 ){
+            results.push( result );
+          }
+        });
+
+        resolve( { status: true, results: results } );
+      }else{
+        resolve( { status: false, error: r.error } );
+      }
     }else{
       resolve( { status: false, error: 'no db' } );
     }
@@ -230,6 +189,52 @@ api.deleteItems = async function(){
   });
 };
 
+
+//. #20
+api.getAll = async function(){
+  return new Promise( async ( resolve, reject ) => {
+    if( memcached ){
+      memcached.items( function( err, results ){
+        if( err ){
+          resolve( { status: false, error: err } );
+        }else{
+          var cnt = 0;
+          var values = [];
+          results.forEach( function( result ){
+            Object.keys( result ).forEach( function( slabid ){
+              if( slabid != 'server' ){
+                memcached.cachedump( result.server, parseInt( slabid ), result[slabid].number, function( err, key_results ){
+                  var keys = [];
+                  key_results.forEach( function( key_result ){
+                    var key = key_result['key'];
+                    keys.push( key );
+                  });
+
+                  memcached.getMulti( keys, function( err, data ){
+                    if( !err ){
+                      keys.forEach( function( key ){
+                        values.push( data[key] );
+                      });
+                    }
+
+                    cnt ++;
+                    if( cnt == results.length ){
+                      resolve( { status: true, results: values } );
+                    }
+                  });
+                });
+              }
+            });
+          });
+        }
+      });
+    }else{
+      resolve( { status: false, error: 'no db' } );
+    }
+  });
+};
+
+    
 
 api.post( '/item', async function( req, res ){
   res.contentType( 'application/json; charset=utf-8' );
