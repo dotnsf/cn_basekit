@@ -18,6 +18,7 @@ if( database_url ){
   console.log( 'database_url = ' + database_url );
   pg = new PG.Pool({
     connectionString: database_url,
+    //ssl: { require: true, rejectUnauthorized: false },
     idleTimeoutMillis: ( 3 * 86400 * 1000 )
   });
   pg.on( 'error', function( err ){
@@ -33,6 +34,7 @@ function try_reconnect( ts ){
     console.log( 'reconnecting...' );
     pg = new PG.Pool({
       connectionString: database_url,
+      //ssl: { require: true, rejectUnauthorized: false },
       idleTimeoutMillis: ( 3 * 86400 * 1000 )
     });
     pg.on( 'error', function( err ){
