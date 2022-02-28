@@ -23,6 +23,12 @@ html, body{
 }
 </style>
 <script>
+<% if( user && user.nickname ){ %>
+  var user_nickname = '<%= user.nickname %>';
+<% }else{ %>
+  var user_nickname = '';
+<% } %>
+
 $(function(){
   $('#queryForm').submit( function( evt ){
     evt.preventDefault();
@@ -63,7 +69,7 @@ $(function(){
 function createItem(){
   var name = $('#name0').val();
   var price = parseInt( $('#price0').val() );
-  var data = { name: name, price: price };
+  var data = { name: name, price: price, user: user_nickname };
   //alert( JSON.stringify( data ) );
   $.ajax({
     type: 'POST',
@@ -129,7 +135,7 @@ function deleteItem( item_id ){
   </form>
   <table class="table table-bordered">
     <thead>
-      <tr><th>#</th><th>name</th><th>price</th><th>actions</th></tr>
+      <tr><th>#</th><th>name</th><th>price</th><th>user</th><th>actions</th></tr>
     </thead>
     <tbody id="tbody">
 <% for( var i = 0; i < items.length; i ++ ){ %>
@@ -137,6 +143,7 @@ function deleteItem( item_id ){
         <td><%= i %></td>
         <td><%= items[i].name %></td>
         <td><%= items[i].price %></td>
+        <td><%= items[i].user %></td>
         <td>
           <button class="btn btn-danger btn-xs" onClick="deleteItem('<%= items[i].id %>');">DELETE</button>
         </td>
@@ -146,6 +153,14 @@ function deleteItem( item_id ){
         <td> - </td>
         <td><input type="text" name="name0" id="name0" class="form-control" value="" placeholder="name" /></td>
         <td><input type="number" name="price0" id="price0" class="form-control" value="0" placeholder="price" /></td>
+        <td> 
+<% if( user && user.nickname ){ %>
+  <%= user.nickname %>
+<% }else{ %>
+  -
+<% } %>
+
+        </td>
         <td>
           <button class="btn btn-primary btn-xs" onClick="createItem();">CREATE</button>
         </td>

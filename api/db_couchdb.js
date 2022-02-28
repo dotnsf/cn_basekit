@@ -160,7 +160,8 @@ api.queryItems = function( key, limit, start ){
       var option = {
         url: url,
         method: 'POST',
-        json: { selector: { name: key } },
+        //json: { selector: { name: key } },
+        json: { selector: { "$or": [ { name: key }, { user: key } ] } },  //. #22
         headers: db_headers
       };
       request( option, ( err, res, body ) => {

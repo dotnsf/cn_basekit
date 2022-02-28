@@ -216,7 +216,7 @@ api.queryItems = async function( key, limit, offset ){
           resolve( { status: false, error: err } );
         }else{
           try{
-            var sql = "select * from items where name like '%" + key + "%' order by updated";
+            var sql = "select * from items where name like '%" + key + "%' or user like '%" + key + "%' order by updated";
             if( limit ){
               if( offset ){
                 sql += ' limit ' + offset + ',' + limit;

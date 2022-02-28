@@ -162,7 +162,7 @@ api.readItems = function( limit, start ){
 api.queryItems = function( key, limit, start ){
   return new Promise( async ( resolve, reject ) => {
     if( cluster && bucket ){
-      var sql = 'SELECT id, name, price, created, updated from \`' + bucketname + '\` where name like \'%' + key + '%\'';
+      var sql = 'SELECT id, name, price, user, created, updated from \`' + bucketname + '\` where name like \'%' + key + '%\' or user like \'%' + key + '%\'';
       try{
         var result = await cluster.query( sql );
         if( result && result.rows ){

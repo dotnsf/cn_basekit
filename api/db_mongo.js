@@ -130,7 +130,8 @@ api.readItems = function( limit, start ){
 api.queryItems = function( key, limit, start ){
   return new Promise( async ( resolve, reject ) => {
     if( collection ){
-      var items = await collection.find( { name: key } ).toArray();
+      //var items = await collection.find( { name: key } ).toArray();
+      var items = await collection.find( { $or: [ { name: key }, { user: key } ] } ).toArray();  //. #22
 
       if( start ){
         items.splice( 0, start );

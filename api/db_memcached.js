@@ -119,7 +119,8 @@ api.queryItems = function( key, limit, start ){
       if( r && r.status ){
         var results = [];
         r.results.forEach( function( result ){
-          if( result.name.indexOf( key ) > -1 ){
+          //if( result.name.indexOf( key ) > -1 ){
+          if( result.name.indexOf( key ) > -1 || result.user.indexOf( key ) > -1 ){ //. #22
             results.push( result );
           }
         });

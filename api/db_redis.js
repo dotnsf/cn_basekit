@@ -178,7 +178,7 @@ api.queryItems = function( key, limit, offset ){
             if( results[i].indexOf( ':' ) == -1 ){
               redisClient.get( results[i], function( err, item ){
                 item = JSON.parse( item );
-                if( item.name.indexOf( key ) > -1 ){
+                if( item.name.indexOf( key ) > -1 || item.user.indexOf( key ) > -1 ){
                   items.push( item );
                 }
                 cnt ++;

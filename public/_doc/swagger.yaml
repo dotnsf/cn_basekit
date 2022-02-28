@@ -163,6 +163,9 @@ definitions:
       price:
         type: integer
         description: 価格
+      user:
+        type: string
+        description: ユーザー名
   ItemsRequest:
     type: array
     items:
@@ -177,3 +180,6 @@ definitions:
         price:
           type: integer
           description: 価格
+        user:
+          type: string
+          description: ユーザー名

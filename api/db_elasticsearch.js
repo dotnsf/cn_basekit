@@ -129,7 +129,8 @@ api.readItems = function( limit, start ){
 
 api.queryItems = function( key, limit, start ){
   return new Promise( ( resolve, reject ) => {
-    var json = { query: { match: { name: key } } };
+    //var json = { query: { match: { name: key } } };
+    var json = { query: { bool: { should: [ { match: { name: key } }, { match: { user: key } } ] } } }; //. #22
     if( limit ){ json.size = limit; }
     if( start ){ json.from = start; }
     var url = database_url + '/_search?pretty';

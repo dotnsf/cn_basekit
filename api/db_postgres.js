@@ -60,7 +60,7 @@ api.createItem = async function( item ){
       conn = await pg.connect();
       if( conn ){
         try{
-          var sql = 'insert into items( id, name, price, created, updated ) values ( $1, $2, $3, $4, $5 )';
+          var sql = 'insert into items( id, name, price, user, created, updated ) values ( $1, $2, $3, $4, $5, $6 )';
           //var sql = "select * from items";
           if( !item.id ){
             item.id = uuidv1();
@@ -69,7 +69,7 @@ api.createItem = async function( item ){
           item.created = t;
           item.updated = t;
           //console.log( item );
-          var query = { text: sql, values: [ item.id, item.name, item.price, item.created, item.updated ] };
+          var query = { text: sql, values: [ item.id, item.name, item.price, item.user, item.created, item.updated ] };
           conn.query( query, function( err, result ){
             if( err ){
               console.log( err );
@@ -104,7 +104,7 @@ api.createItems = function( items ){
           var num = 0;
           var count = 0;
 
-          var sql = 'insert into items( id, name, price, created, updated ) values ( $1, $2, $3, $4, $5 )';
+          var sql = 'insert into items( id, name, price, user, created, updated ) values ( $1, $2, $3, $4, $5i, $6 )';
           for( var i = 0; i < items.length; i ++ ){
             var item = items[i];
             if( !item.id ){
@@ -114,7 +114,7 @@ api.createItems = function( items ){
             item.created = t;
             item.updated = t;
             //console.log( item );
-            var query = { text: sql, values: [ item.id, item.name, item.price, item.created, item.updated ] };
+            var query = { text: sql, values: [ item.id, item.name, item.price, item.user, item.created, item.updated ] };
             conn.query( query, function( err, result ){
               num ++;
               if( err ){
@@ -229,7 +229,7 @@ api.queryItems = async function( key, limit, offset ){
       conn = await pg.connect();
       if( conn ){
         try{
-          var sql = "select * from items where name like '%" + key + "%' order by updated";
+          var sql = "select * from items where name like '%" + key + "%' or user like '%" + key + "%' order by updated";
           if( limit ){
             sql += " limit " + limit;
           }
@@ -272,11 +272,11 @@ api.updateItem = async function( item ){
           resolve( { status: false, error: 'no id.' } );
         }else{
           try{
-            var sql = 'update items set name = $1, price = $2, updated = $3 where id = $4';
+            var sql = 'update items set name = $1, price = $2, user = $3, updated = $4 where id = $5';
             //var sql = "select * from items";
             var t = ( new Date() ).getTime();
             item.updated = t;
-            var query = { text: sql, values: [ item.name, item.price, item.updated, item.id ] };
+            var query = { text: sql, values: [ item.name, item.price, item.user, item.updated, item.id ] };
             conn.query( query, function( err, result ){
               if( err ){
                 console.log( err );

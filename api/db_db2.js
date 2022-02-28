@@ -57,7 +57,7 @@ api.createItem = async function( item ){
             console.log( err );
             resolve( { status: false, error: err } );
           }else{
-            var sql = 'insert into items( "id", "name", "price", "created", "updated" ) values ( ?, ?, ?, ?, ? )';
+            var sql = 'insert into items( "id", "name", "price", "user", "created", "updated" ) values ( ?, ?, ?, ?, ?, ? )';
             if( !item.id ){
               item.id = uuidv1();
             }
@@ -65,7 +65,7 @@ api.createItem = async function( item ){
             item.created = t;
             item.updated = t;
 
-            conn.query( sql, [ item.id, item.name, item.price, item.created, item.updated ], function( err, result ){
+            conn.query( sql, [ item.id, item.name, item.price, item.user, item.created, item.updated ], function( err, result ){
               if( err ){
                 conn.close();
                 console.log( err );
@@ -103,7 +103,7 @@ api.createItems = async function( items ){
             var num = 0;
             var count = 0;
 
-            var sql = 'insert into items( "id", "name", "price", "created", "updated" ) values ( ?, ?, ?, ?, ? )';
+            var sql = 'insert into items( "id", "name", "price", "user", "created", "updated" ) values ( ?, ?, ?, ?, ?, ? )';
             for( var i = 0; i < items.length; i ++ ){
               var item = items[i];
               if( !item.id ){
@@ -113,7 +113,7 @@ api.createItems = async function( items ){
               item.created = t;
               item.updated = t;
 
-              conn.query( sql, [ item.id, item.name, item.price, item.created, item.updated ], function( err, result ){
+              conn.query( sql, [ item.id, item.name, item.price, item.user, item.created, item.updated ], function( err, result ){
                 num ++;
                 if( err ){
                   console.log( err );
@@ -153,7 +153,7 @@ api.readItem = async function( item_id ){
             console.log( err );
             resolve( { status: false, error: err } );
           }else{
-            var sql = 'select "id", "name", "price", "created", "updated" from items where "id" = ?';
+            var sql = 'select "id", "name", "price", "user", "created", "updated" from items where "id" = ?';
             conn.query( sql, [ item_id ], function( err, results ){
               if( err ){
                 conn.close();
@@ -194,7 +194,7 @@ api.readItems = async function( limit, offset ){
             console.log( err );
             resolve( { status: false, error: err } );
           }else{
-            var sql = 'select "id", "name", "price", "created", "updated" from items order by "updated"';
+            var sql = 'select "id", "name", "price", "user", "created", "updated" from items order by "updated"';
             if( offset ){
               sql += " offset " + offset + " rows";
             }
@@ -236,7 +236,7 @@ api.queryItems = async function( key, limit, offset ){
             console.log( err );
             resolve( { status: false, error: err } );
           }else{
-            var sql = 'select "id", "name", "price", "created", "updated" from items where "name" like \'%' + key + '%\' order by "updated"';
+            var sql = 'select "id", "name", "price", "user", "created", "updated" from items where "name" like \'%' + key + '%\' or "user" like \'%' + key + '%\' order by "updated"';
             if( offset ){
               sql += " offset " + offset + " rows";
             }
@@ -283,8 +283,8 @@ api.updateItem = async function( item ){
               conn.close();
               resolve( { status: false, error: 'no id.' } );
             }else{
-              var sql = 'update items set "name" = ?, "price" = ?, "updated" = ? where "id" = ?';
-              conn.query( sql, [ item.name, item.price, item.updated, item.id ], function( err, result ){
+              var sql = 'update items set "name" = ?, "price" = ?, "user" = ?, "updated" = ? where "id" = ?';
+              conn.query( sql, [ item.name, item.price, item.user, item.updated, item.id ], function( err, result ){
                 if( err ){
                   conn.close();
                   console.log( err );

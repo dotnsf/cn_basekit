@@ -98,7 +98,7 @@ api.queryItems = function( key, limit, start ){
   return new Promise( async ( resolve, reject ) => {
     var items = [];
     Object.keys( db ).forEach( function( id ){
-      if( db[id].name.indexOf( key ) > -1 ){
+      if( db[id].name.indexOf( key ) > -1 || db[id].user.indexOf( key ) > -1 ){
         items.push( db[id] );
       }
     });
