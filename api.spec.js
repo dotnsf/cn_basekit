@@ -6,7 +6,7 @@ var request = require( 'supertest' ),
 
 chai.should();
 
-describe( 'POST item, GET item, DELETE items, GET item', function(){
+describe( 'POST item, GET item, UPDATE item, DELETE item', function(){
   it( 'should work as expected', async function(){
     var result1 = await request( app ).post( '/api/db/item' ).send( { name: 'シャンプー', price: 500, user: 'K.Kimura' } );
     var item_id = result1.body.result.id;
