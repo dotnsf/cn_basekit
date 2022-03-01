@@ -173,3 +173,5 @@ app.get( '/', async function( req, res ){
 var port = process.env.PORT || 8080;
 app.listen( port );
 console.log( "server starting on " + port + " ..." );
+
+module.exports = app;
