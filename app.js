@@ -97,6 +97,15 @@ if( authtype == 'auth0' && settings_auth0_domain && settings_auth0_client_id && 
   }));
 }
 
+var settings_cors = 'CORS' in process.env ? process.env.CORS : '';
+app.all( '/*', function( req, res, next ){
+  if( settings_cors ){
+    res.setHeader( 'Access-Control-Allow-Origin', settings_cors );
+    res.setHeader( 'Vary', 'Origin' );
+  }
+  next();
+});
+
 if( authtype == 'auth0' ){
   //. login
   app.get( '/auth0/login', passport.authenticate( 'auth0', {
