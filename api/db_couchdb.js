@@ -11,6 +11,15 @@ var settings = require( '../settings' );
 //. env values
 var database_url = 'COUCHDB_DATABASE_URL' in process.env ? process.env.COUCHDB_DATABASE_URL : settings.couchdb_database_url; 
 
+var settings_cors = 'CORS' in process.env ? process.env.CORS : '';
+api.all( '/*', function( req, res, next ){
+  if( settings_cors ){
+    res.setHeader( 'Access-Control-Allow-Origin', settings_cors );
+    res.setHeader( 'Vary', 'Origin' );
+  }
+  next();
+});
+
 var db = '';
 var db_headers = { 'Accept': 'application/json' };
 

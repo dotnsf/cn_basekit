@@ -12,6 +12,15 @@ var settings = require( '../settings' );
 var database_url = 'COUCHBASE_DATABASE_URL' in process.env ? process.env.COUCHBASE_DATABASE_URL : settings.couchbase_database_url; 
 console.log( 'database_url1 = ' + database_url );
 
+var settings_cors = 'CORS' in process.env ? process.env.CORS : '';
+api.all( '/*', function( req, res, next ){
+  if( settings_cors ){
+    res.setHeader( 'Access-Control-Allow-Origin', settings_cors );
+    res.setHeader( 'Vary', 'Origin' );
+  }
+  next();
+});
+
 var user = '';
 var pass = '';
 var bucketname = '';

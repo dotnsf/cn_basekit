@@ -13,6 +13,15 @@ var settings = require( '../settings' );
 //. env values
 var database_url = 'MYSQL_DATABASE_URL' in process.env ? process.env.MYSQL_DATABASE_URL : settings.mysql_database_url; 
 
+var settings_cors = 'CORS' in process.env ? process.env.CORS : '';
+api.all( '/*', function( req, res, next ){
+  if( settings_cors ){
+    res.setHeader( 'Access-Control-Allow-Origin', settings_cors );
+    res.setHeader( 'Vary', 'Origin' );
+  }
+  next();
+});
+
 var mysql = Mysql.createPool( database_url );
 mysql.on( 'error', function( err ){
   console.log( 'error on working', err );

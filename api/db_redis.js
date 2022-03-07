@@ -10,6 +10,15 @@ var settings = require( '../settings' );
 
 var settings_redis_url = 'REDIS_DATABASE_URL' in process.env ? process.env.REDIS_DATABASE_URL : settings.redis_database_url; 
 
+var settings_cors = 'CORS' in process.env ? process.env.CORS : '';
+api.all( '/*', function( req, res, next ){
+  if( settings_cors ){
+    res.setHeader( 'Access-Control-Allow-Origin', settings_cors );
+    res.setHeader( 'Vary', 'Origin' );
+  }
+  next();
+});
+
 //. Redis
 var redis = require( 'redis' );
 //var RedisStore = require( 'connect-redis' )( session );

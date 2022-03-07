@@ -11,6 +11,16 @@ var settings = require( '../settings' );
 
 var Pool = require( 'ibm_db' ).Pool;
 var database_url = 'DB2_DATABASE_URL' in process.env ? process.env.DB2_DATABASE_URL : settings.db2_database_url; 
+
+var settings_cors = 'CORS' in process.env ? process.env.CORS : '';
+api.all( '/*', function( req, res, next ){
+  if( settings_cors ){
+    res.setHeader( 'Access-Control-Allow-Origin', settings_cors );
+    res.setHeader( 'Vary', 'Origin' );
+  }
+  next();
+});
+
 var pool = null;
 if( database_url ){
   console.log( 'database_url = ' + database_url );

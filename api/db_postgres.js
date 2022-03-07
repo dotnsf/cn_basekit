@@ -13,6 +13,16 @@ var settings = require( '../settings' );
 var PG = require( 'pg' );
 //PG.defaults.ssl = true;
 var database_url = 'POSTGRES_DATABASE_URL' in process.env ? process.env.POSTGRES_DATABASE_URL : settings.postgres_database_url; 
+
+var settings_cors = 'CORS' in process.env ? process.env.CORS : '';
+api.all( '/*', function( req, res, next ){
+  if( settings_cors ){
+    res.setHeader( 'Access-Control-Allow-Origin', settings_cors );
+    res.setHeader( 'Vary', 'Origin' );
+  }
+  next();
+});
+
 var pg = null;
 if( database_url ){
   console.log( 'database_url = ' + database_url );

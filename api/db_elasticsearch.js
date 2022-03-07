@@ -11,6 +11,15 @@ var settings = require( '../settings' );
 //. env values
 var database_url = 'ELASTICSEARCH_DATABASE_URL' in process.env ? process.env.ELASTICSEARCH_DATABASE_URL : settings.elasticsearch_database_url; 
 
+var settings_cors = 'CORS' in process.env ? process.env.CORS : '';
+api.all( '/*', function( req, res, next ){
+  if( settings_cors ){
+    res.setHeader( 'Access-Control-Allow-Origin', settings_cors );
+    res.setHeader( 'Vary', 'Origin' );
+  }
+  next();
+});
+
 var index = '';
 var db_headers = { 'Content-Type': 'application/json' };
 var tmp = database_url.split( '/' );

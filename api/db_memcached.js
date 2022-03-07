@@ -11,6 +11,15 @@ var settings = require( '../settings' );
 //. env values
 var database_url = 'MEMCACHED_DATABASE_URL' in process.env ? process.env.MEMCACHED_DATABASE_URL : settings.memcached_database_url; 
 
+var settings_cors = 'CORS' in process.env ? process.env.CORS : '';
+api.all( '/*', function( req, res, next ){
+  if( settings_cors ){
+    res.setHeader( 'Access-Control-Allow-Origin', settings_cors );
+    res.setHeader( 'Vary', 'Origin' );
+  }
+  next();
+});
+
 var Memcached = require( 'memcached' );
 var memcached = new Memcached( database_url );  //. こっちだと動くっぽい・・・・
 

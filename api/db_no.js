@@ -11,6 +11,15 @@ var settings = require( '../settings' );
 //. memory db
 var db = {};
 
+var settings_cors = 'CORS' in process.env ? process.env.CORS : '';
+api.all( '/*', function( req, res, next ){
+  if( settings_cors ){
+    res.setHeader( 'Access-Control-Allow-Origin', settings_cors );
+    res.setHeader( 'Vary', 'Origin' );
+  }
+  next();
+});
+
 //. POST メソッドで JSON データを受け取れるようにする
 api.use( multer( { dest: '../tmp/' } ).single( 'image' ) );
 api.use( bodyParser.urlencoded( { extended: true } ) );
